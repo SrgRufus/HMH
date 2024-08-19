@@ -1,0 +1,136 @@
+# project/root -- main.py, config.py, remontest.env, .gitignore, default_value.db
+# root/database db_manager.py, assignment_manager.py, operations.py, connection.py, models.py
+# root/gui -- mainwindow.py, list_assign.py, create_assign.py, widgets.py, custom_buttons.py, search_bar.py
+# root/managers -- nav_manager.py, /queries -- assignments.py  /utils -- file_utils.py, recurrence.py, validators.py
+
+# Innehåll:
+# /root -- main.py, config.py, remontest.env, .gitignore, default_value.db
+# root (huvudmappen), styr env och centrala funktioner och bra och ha nyttiga grejer.
+
+# /database db_manager.py, assignment_manager.py, operations.py, connection.py, models.py
+# Databasen styr över centrala funktioner som talar med SQLite3 databasen, db_manager: hanterar alla databaskopplingar och operationer.
+# Den tillhandahåller metoder för att skapa, läsa, uppdatera och radera poster i databasen
+# assignment_manager: Hanterar uppdrag, hämtar, uppdaterar och tar bort.
+# connection: Contextmanager, öppnar en databasanslutning, felhantering, loggar.
+# models: Definierar en dataklass som representerar ett "uppdrag". Denna klass används för att representera och hantera uppdrag i hela systemet.
+# operations: Två funktioner, execute_query(db_path, query, parameters=()) förutom get_db_connection kör SQL frågor
+# och fetch_all(db_path, query, parameters=()) utför en SELECT fråga, och hämtar rader från databasen
+
+# /gui -- mainwindow.py, list_assign.py, create_assign.py, widgets.py, custom_buttons.py, search_bar.py
+# mainwindow: är huvudsakligen det centrala användargränssnittet för applikationen, huvudvy, navigering,
+# användarinteraktioner, widgets, koordinerar med backend kod. widget: definierar en enkel (CustomWidget), anpassad widget för användargränssnittet.
+# list_assign: hanterar och visar en lista över uppdrag i applikationen, innehåller kanske för mycket, create_button_grid, create_button, go_back, # populate_assignments och mer.
+# Tillhandahåller en interaktiv lista för att visa, hantera och uppdatera uppdrag, med funktioner för att visa detaljer, ta bort eller
+# uppdatera status på uppdrag direkt från användargränssnittet.
+# create_assign: ett formulär för att samla in information om ett nytt uppdrag och lagra det i databasen. Användaren fyller i uppdragsdetaljer,
+# och när formuläret skickas, valideras och lagras uppdraget, och en bekräftelse visas.
+# custom_buttons: Denna fil definierar en layout som innehåller en uppsättning navigeringsknappar
+# search_bar: Tillhandahåller ett gränssnitt för att söka efter uppdrag baserat på olika kriterier.
+
+# /utils -- file_utils.py, recurrence.py, validators.py
+# file_utils: Funktioner hjälper till att hantera filer genom att kopiera, radera och läsa dem.
+# recurrence: Ett skript som hjälper till att hantera olika återkommande mönster och scheman genom att beräkna framtida datum baserat på de specificerade    # inställningarna. En väldigt central del av det här projektet.Här hanteras hjälpfunktioner som calculate_next_date som används för att beräkna nästa datum för    # återkommande uppdrag.
+# och sedan till sist validators: **validators.py** innehåller en funktion som validerar om en given frekvens för upprepning (tomningsfrekvens)
+# är giltig enligt en fördefinierad lista av scheman. Om frekvensen inte finns i listan, kastar den ett ValueError med ett felmeddelande.
+
+# /recurrance -- recurrance_manager.py, event_handler.py /managers -- nav_manager.py, /queries -- assignments.py  
+# recurrance_manager: Hanterarar och validerar logik för återkommande uppdrag (VIKTIG)
+# event_handlers: Hanterar event, t.ex. när ett uppdrag är slutfört och ett nytt återkommande uppdrag behöver skapas.
+# /managers -- nav_manager: Denna fil hanterar navigering och menyhantering i huvudfönstret
+# /queries -- assignments: Innehåller SQL-frågor som används för att manipulera och hämta data från assignments
+#
+
+# To-do:
+# Skulle nästan säga att list_assign är prio, men det kan vara för att jag är emotionellt involverad och den har svikit mig förut
+# Går inte att skapa uppdrag, från 'create_assign' så går du in i formuläret och när du trycker klar krashar det --- Felsök och lös.
+# Går inte att navigera från alla sidor till alla sidor, måste se över både toppmeny och knapp menyn. --- Felsök och åtgärda
+# Skapa alla sidor som behövs och bygg om dem gamla, MainWindow behöver facelift, list_assign, behöver snyggas till och jag vill ha ett
+# widget träd istället för det som är nu som visar uppdrag, med korrekta kolumner, create_assign borde komma upp i en dialog ruta.
+# Sidor som behövs, Öppna order (dialog ruta), Historik (samt funktioner), Avancerat sök (fixa vanlig sök först),
+# inställningar (måste också fixa så att flera unika användare kan vara inne samtidigt och uppdatera i realtid), Statistik typ
+# Många menyknappar, och funktioner bl.a uppdatera, hämta, radera och sök order fungerar inte --- Vet inte vart jag ska börja här.
+# Mycket kod behöver optimeras om, gå igenom och kolla vart det behövs.
+# databasen kan inte hantera frågan "UPDATE assignments SET (set_clause) WHERE id = ?" ---- Hitta lösning
+# Nuvarande mål, få in ordrar i systemet och testa för fel.
+
+0,5: Kom på hur man plockar in den sparade vyn från databas i programmet för att test köra funktioner, logik, regler med mera.
+
+1. Få någorlunda normal orderfunktion, hämta uppdrag gömmer befintliga.
+2. Lägg in funktioner som öppna uppdrag, edit och radera (databas är låst)
+3. Fler directories, fler moduler och mer kod, undersök om fler databaser skulle hjälpa eller hindra mig..
+    (ui_componenter, gui stöd komponenter, databasstöd komponenter, resterande sidor på programmet, historik sökfunktion)
+
+
+    Det är mycket
+
+4. Testa om avancerade regler fungerar som dem ska.
+
+
+
+
+Down the road>
+
+Hitta en bra gui, PyQt är bra men svår.
+
+
+ChatGPT förslag:
+Your `list_assign.py` and `create_assign.py` files define two essential components of your application: a list view for assignments and a form for creating new assignments. Let's break down each file:
+
+### `list_assign.py`
+This file defines the `ListAssign` class, which extends `QWidget` and manages the display and interaction with a list of assignments.
+
+#### Key Features:
+1. **UI Components**:
+   - A `QListWidget` (`assignment_list`) to show assignments.
+   - Buttons for fetching, opening, updating, and deleting assignments.
+   - Layouts (`QVBoxLayout` and `QGridLayout`) to organize these components.
+
+2. **Methods**:
+   - `populate_assignments()`: Fetches and displays assignments from the database, highlighting those due today.
+   - `delete_selected_assignment()`: Allows the user to delete a selected assignment.
+   - `open_assign()`: Placeholder for functionality to open an assignment.
+   - `update_status()`: Placeholder for functionality to update the status of an assignment.
+   - `go_back()`: Navigates back to the main page.
+
+3. **Database Interaction**:
+   - Interacts with a `DBManager` to fetch and manipulate assignment data.
+
+#### Considerations:
+- The placeholders in `open_assign()` and `update_status()` should be implemented to provide full functionality.
+- Error handling around database operations is minimal; consider expanding it.
+
+### `create_assign.py`
+This file defines the `CreateAssignmentDialog` class, which provides a form to create new assignments.
+
+#### Key Features:
+1. **UI Components**:
+   - `QLineEdit` for text input (e.g., `kommun_input`, `adress_input`).
+   - `QComboBox` for dropdown selections (e.g., `material_dropdown`, `tomningsfrekvens_dropdown`).
+   - A `QPushButton` (`submit_button`) to submit the form.
+
+2. **Methods**:
+   - `submit()`: Validates input, calculates the next date for assignment recurrence, and saves the new assignment to the database.
+
+3. **Database Interaction**:
+   - Interacts with `DBManager` to create a new assignment record.
+
+#### Considerations:
+- The `submit()` method assumes that `calculate_next_date()` works as intended to determine the next occurrence based on `tomningsfrekvens`.
+- Ensure the `DBManager` handles all possible exceptions that might occur during assignment creation, like database connectivity issues or data validation errors.
+
+### Suggested Improvements:
+
+1. **Error Handling**:
+   - Both files could benefit from more robust error handling, especially around database interactions and user inputs.
+
+2. **Code Modularization**:
+   - Some of the methods in these classes, like `populate_assignments()` and `submit()`, could be further broken down into smaller, more manageable functions. This would improve readability and maintainability.
+
+3. **UI Enhancements**:
+   - Consider adding more user feedback for operations like assignment deletion (e.g., a confirmation dialog before deletion).
+   - The "Tillbaka till huvudmenyn" button in `ListAssign` could be more explicit if it navigates to a specific page.
+
+4. **Testing**:
+   - Once your application is functional, implementing unit tests for these components will be essential to ensure they work correctly with the rest of your system.
+
+If you have specific areas you'd like to dive deeper into or need additional features implemented, feel free to ask!

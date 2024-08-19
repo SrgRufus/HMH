@@ -1,0 +1,18 @@
+Index: database/db_manager.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/database/db_manager.py b/database/db_manager.py
+--- a/database/db_manager.py	
++++ b/database/db_manager.py	(date 1723748999914)
+@@ -49,7 +49,8 @@
+                    (kommun, adress, ort, material, tomningsfrekvens, info, chauffor, koordinater, next_occurrence_date, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')"""
+         self.execute_query(query,
+-                           (kommun, adress, ort, material, tomningsfrekvens, info, chauffor, koordinater, next_date))
++        (kommun, adress, ort, material, tomningsfrekvens, info, chauffor, koordinater, next_date
++        ))
+ 
+ 
+     def update_assignment(self, assignment_id, **kwargs):
