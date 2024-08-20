@@ -2,7 +2,7 @@
 from config import DB_PATH
 from database.connection import get_db_connection
 from database.operations import execute_query
-from database.managers.queries.assignment_queries import CREATE_ASSIGNMENTS_TABLE
+from database.queries.task_queries import CREATE_TASKS_TABLE
 
 
 # Hanterar grundläggande databasoperationer som initiering av databasen.
@@ -19,7 +19,7 @@ class DBManager:
 
     # Initierar databasen genom att skapa nödvändiga tabeller.
     def init_db(self):
-        execute_query(self.db_path, CREATE_ASSIGNMENTS_TABLE)
+        execute_query(self.db_path, CREATE_TASKS_TABLE)
 
     # Hämtar alla rader för en given query.
     def fetch_all(self, query):

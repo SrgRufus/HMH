@@ -1,7 +1,7 @@
 # database.managers.queries.assignments.py
 
 # Skapa tabell
-CREATE_ASSIGNMENTS_TABLE = """
+CREATE_TASKS_TABLE = """
 CREATE TABLE IF NOT EXISTS assignments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     kommun TEXT,
@@ -50,22 +50,22 @@ DELETE FROM assignments WHERE id = ?
 
 # SQL fråga: Val, selektion:
 # Hämtar alla uppdrag
-SELECT_ALL_ASSIGNMENTS = """
+SELECT_ALL_TASKS = """
 SELECT * FROM assignments
 """
 
 # Hämtar och sorterar uppdrag efter datum
-SELECT_ASSIGNMENTS_SORTED_BY_DATE = """
+SELECT_TASKS_SORTED_BY_DATE = """
 SELECT * FROM assignments 
 WHERE next_occurrence_date IS NOT NULL 
 ORDER BY next_occurrence_date ASC
 """
 
 # Hämtar uppdrag för aktuell vecka
-SELECT_ASSIGNMENTS_FOR_CURRENT_WEEK = """
+SELECT_TASKS_FOR_CURRENT_WEEK = """
 SELECT * FROM assignments 
 WHERE next_occurrence_date BETWEEN ? AND ?
 """
 
 # Ställer frågan till SQL att välja ett uppdrag baserat på dess ID
-SELECT_ASSIGNMENT_BY_ID = "SELECT * FROM assignments WHERE id = ?"
+SELECT_TASK_BY_ID = "SELECT * FROM assignments WHERE id = ?"

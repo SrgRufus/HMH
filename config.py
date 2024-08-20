@@ -11,7 +11,7 @@ if not DB_PATH:
     raise ValueError("DB_PATH environment variable is not set")
 
 # Database table and field names
-ASSIGNMENTS_TABLE = "assignments"
+TASKS_TABLE = "tasks"
 DEFAULT_STATUS = "Pending"
 
 # GUI settings

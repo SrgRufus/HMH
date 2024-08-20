@@ -2,8 +2,8 @@
 from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout
 from PyQt5.Qt import Qt, QFont
 
-from gui.create_assign import CreateAssignmentDialog
-from gui.list_assign import ListAssign
+from gui.create_task import CreateTaskDialog
+from gui.list_tasks import ListTasks
 
 
 class PageManager:
@@ -14,12 +14,9 @@ class PageManager:
     def create_pages(self):
         # Skapa sidor och lägg till dem i pages-ordboken
         self.pages["Hem"] = self.create_home_page()
-        self.pages["Uppdrag"] = self.create_assignments_page()
-        self.pages["Skapa Uppdrag"] = self.create_create_assignment_page()
-      #  self.pages["Sök uppdrag"] = QLabel("Sök uppdrag Sida"),
-      #  self.pages["Inställningar"] = QLabel("Inställningar Sida"),
-      #  self.pages["Historik"] = QLabel("Historik Sida"),
-      #  self.pages["Statistik"] = QLabel("Statistik Sida"),
+        self.pages["Uppdrag"] = self.create_tasks_page()
+        self.pages["Skapa Uppdrag"] = self.create_create_task_page()
+
 
         # Lägg till fler sidor om det behövs
         return self.pages
@@ -37,14 +34,14 @@ class PageManager:
         layout.addWidget(welcome_label)
         return home_widget
 
-    def create_assignments_page(self) -> QWidget:
+    def create_tasks_page(self) -> QWidget:
         # Logik för att skapa Uppdrag-sidan
-        assignments_page = ListAssign(self.main_window, self.main_window.db_path, self.main_window.event_manager)
-        return assignments_page
+        tasks_page = ListTasks(self.main_window, self.main_window.db_path, self.main_window.event_manager)
+        return tasks_page
 
-    def create_create_assignment_page(self) -> QWidget:
+    def create_create_task_page(self) -> QWidget:
         # Logik för att skapa "Skapa Uppdrag"-sidan
-        create_assign_page = CreateAssignmentDialog(self.main_window, self.main_window.db_path, self.main_window.event_manager)
-        return create_assign_page
+        create_task_page = CreateTaskDialog(self.main_window, self.main_window.db_path, self.main_window.event_manager)
+        return create_task_page
 
     # Lägg till fler metoder för att skapa andra sidor om det behövs

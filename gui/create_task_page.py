@@ -1,19 +1,19 @@
-# gui.create_assign.py
+# gui.create_task.py
 from datetime import datetime
 from PyQt5.QtWidgets import (
     QWidget, QLabel, QVBoxLayout, QHBoxLayout, QLineEdit, QComboBox, QPushButton, QMessageBox
 )
 
-from database.managers.assignment_manager import AssignmentManager
+from database.managers.task_manager import TaskManager
 from utils.recurrence_utils import calculate_next_date
 from database.managers.event_manager import EventManager
 
 
-class CreateAssignmentDialog(QWidget):
+class CreateTaskDialog(QWidget):
     def __init__(self, parent, db_path: str, event_manager: EventManager):
         super().__init__(parent)
         self.main_window = parent
-        self.manager = AssignmentManager(db_path=db_path, event_manager=event_manager)
+        self.manager = TaskManager(db_path=db_path, event_manager=event_manager)
         self.event_manager = EventManager
 
         self.setWindowTitle("Skapa Nytt Uppdrag")
@@ -109,7 +109,7 @@ class CreateAssignmentDialog(QWidget):
             next_date: datetime = calculate_next_date(data['Tomningsfrekvens'], current_date)
 
             # Skapa uppdraget i databasen
-            self.manager.create_assignment(
+            self.manager.create_task(
                 kommun=data['Kommun'],
                 adress=data['Adress'],
                 ort=data['Ort'],

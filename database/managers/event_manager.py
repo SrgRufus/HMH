@@ -10,24 +10,24 @@ class EventManager:
         self.event_handler = CentralEventHandler
 
     def setup_handlers(self) -> None:
-        self.event_handler.register_handler('assignment_completed', self.handle_assignment_completed)
+        self.event_handler.register_handler('task_completed', self.handle_task_completed)
 
-    def handle_assignment_completed(self, assignment):
-        self.recurrence_manager.create_recurring_assignment(assignment, recurrence_interval_days=7)
+    def handle_task_completed(self, task):
+        self.recurrence_manager.create_recurring_task(task, recurrence_interval_days=7)
 
-        # Log assignment creation for testing/debugging
+        # Log task creation for testing/debugging
     @staticmethod
-    def log_assignment_creation(assignment):
-        print(f"Assignment created: {assignment}")
+    def log_task_creation(task):
+        print(f"Task created: {task}")
 
-    # Ta bort log_assignment och notify_user efter utveckling
-        # Notify user about the assignment for testing/debugging
+    # Ta bort log_task och notify_user efter utveckling
+        # Notify user about the task for testing/debugging
     @staticmethod
-    def notify_user(assignment):
-        print(f"Notification sent for assignment: {assignment}")
+    def notify_user(task):
+        print(f"Notification sent for assignment: {task}")
 
-    def insert_assignment(self, assignment):
-        self.log_assignment_creation(assignment)
-        self.notify_user(assignment)
-        # Trigger assignment creation event
-        event_handler.trigger_event('assignment_created', assignment)
+    def insert_task(self, task):
+        self.log_task_creation(task)
+        self.notify_user(task)
+        # Trigger task creation event
+        event_handler.trigger_event('task_created', task)

@@ -1,9 +1,9 @@
-# utils.assignment_utils.py
+# utils.task_utils.py
 from utils.recurrence_utils import recurrence_mapping
 from utils.recurrence_utils import calculate_next_date
 
 
-def validate_assignment_data(tomningsfrekvens):
+def validate_task_data(tomningsfrekvens):
     """
     Validera de data som krävs för att skapa ett uppdrag.
     :param tomningsfrekvens: Frekvens för tömning.

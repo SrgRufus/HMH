@@ -6,7 +6,7 @@ from database.db_manager import DBManager
 from gui.mainwindow import MainWindow
 from database.managers.event_manager import EventManager
 from database.managers.recurrence_manager import RecurrenceManager
-from database.managers.assignment_manager import AssignmentManager
+from database.managers.task_manager import TaskManager
 from handlers.central_event_handler import event_handler
 
 
@@ -24,12 +24,12 @@ def test_function():
         print(f"Ett fel inträffade: {e}")
 
 # Definiera en funktion som hanterar händelsen
-def on_assignment_created(assignment_data):
-    print(f"Assignment created: {assignment_data}")
+def on_task_created(task_data):
+    print(f"Task created: {task_data}")
     # Här kan du lägga logik för att uppdatera UI, logga eller något annat
 
-# Registrera händelsehanteraren för 'assignment_created'
-event_handler.register_handler('assignment_created', on_assignment_created)
+# Registrera händelsehanteraren för 'task_created'
+event_handler.register_handler('task_created', on_task_created)
 
 # Den riktiga main-funktionen för att starta din applikation
 def main():
@@ -39,11 +39,11 @@ def main():
     db_manager = DBManager(DB_PATH)
     db_manager.init_db()
 
-    # Skapar RecurrenceManager, EventManager, AssignmentManager och MainWindow-klassen och kopplar ihop dem
+    # Skapar RecurrenceManager, EventManager, TaskManager och MainWindow-klassen och kopplar ihop dem
     recurrence_manager = RecurrenceManager(DB_PATH)
     event_manager = EventManager(DB_PATH, recurrence_manager)
-    assignment_manager = AssignmentManager(DB_PATH, event_manager)
-    window = MainWindow(DB_PATH, event_manager, assignment_manager)
+    task_manager = TaskManager(DB_PATH, event_manager)
+    window = MainWindow(DB_PATH, event_manager, task_manager)
     window.show()
 
     sys.exit(app.exec_())

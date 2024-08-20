@@ -20,8 +20,8 @@ class NavigationManager:
 
         # Lägg till menyalternativ för View-menyn
         view_menu.addAction("Home", lambda: self.display_page("Hem"))
-        view_menu.addAction("Assignments", lambda: self.display_page("Uppdrag"))
-        view_menu.addAction("Create Assignment", lambda: self.display_page("Skapa Uppdrag"))
+        view_menu.addAction("Tasks", lambda: self.display_page("Uppdrag"))
+        view_menu.addAction("Create Task", lambda: self.display_page("Skapa Uppdrag"))
 
         # Lägg till menyalternativ för Help-menyn
         help_menu.addAction("About", self.show_about_dialog)

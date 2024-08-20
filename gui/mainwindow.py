@@ -7,11 +7,11 @@ from gui.gui_managers.ui_elements.button_elements import CustomButtons
 from gui.gui_managers.ui_elements.search_bar import SearchBar
 
 class MainWindow(QMainWindow):
-    def __init__(self, db_path: str, event_manager, assignment_manager) -> None:
+    def __init__(self, db_path: str, event_manager, task_manager) -> None:
         super().__init__()
         self.db_path = db_path
         self.event_manager = event_manager
-        self.assignment_manager = assignment_manager
+        self.task_manager = task_manager
         self.page_manager = PageManager(self)  # Initiera PageManager
 
         # Definiera attribut i __init__
