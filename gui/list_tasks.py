@@ -107,4 +107,3 @@ class ListTasks(QWidget):
                 QMessageBox.critical(self, "Error", str(e))
         else:
             QMessageBox.warning(self, "Inget uppdrag valt", "Välj ett uppdrag att uppdatera statusen för.")
-
