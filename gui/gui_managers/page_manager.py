@@ -16,7 +16,7 @@ class PageManager:
         self.pages["Hem"] = self.create_home_page()
         self.pages["Uppdrag"] = self.create_tasks_page()
         self.pages["Skapa Uppdrag"] = self.create_create_task_page()
-
+        self.pages["Ändra Uppdrag"] = self.edit_task()
 
         # Lägg till fler sidor om det behövs
         return self.pages
@@ -44,4 +44,7 @@ class PageManager:
         create_task_page = CreateTaskDialog(self.main_window, self.main_window.db_path, self.main_window.event_manager)
         return create_task_page
 
+    def edit_task(self) -> QWidget:
+        edit_task = EditTask(self.edit_task, self.edit_task.db_path, self.edit_task.event_manager)
+        return edit_task
     # Lägg till fler metoder för att skapa andra sidor om det behövs
