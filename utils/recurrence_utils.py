@@ -43,7 +43,7 @@ def next_valfri(current_date):
     return current_date + timedelta(weeks=1)
 
 # Två gånger i veckan, antar 3.5 dagar isär.
-def next_veckotvilling(current_date):
+def next_twin_dates(current_date):
     return current_date + timedelta(days=3.5)
 
 # Varannan vecka på jämna veckor
@@ -92,7 +92,7 @@ recurrence_mapping = {
     "Lördag, Varje vecka": next_saturday,
     "Söndag, Varje vecka": next_sunday,
     "Varje vecka (valfri dag)": next_valfri,
-    "Två tillfällen varje vecka": next_veckotvilling,
+    "Två tillfällen varje vecka": next_twin_dates,
     "Jämn vecka": next_even_week,
     "Ojämn vecka": next_odd_week,
     "Var 4:e vecka, En gång i Månaden": lambda date: next_every_x_weeks(date, 4),
@@ -103,8 +103,17 @@ recurrence_mapping = {
 }
 
 # Räkna ut nästa tömningsdatum baserat på tömningsfrekvens.
-def calculate_next_date(tomningsfrekvens, current_date):
-    if tomningsfrekvens in recurrence_mapping:
-        return recurrence_mapping[tomningsfrekvens](current_date)
+def calculate_next_date(frequency: str, current_date: datetime) -> datetime:
+    """
+    Beräknar nästa datum baserat på tömningsfrekvensen.
+    :param frequency: Frekvensen (ex. "Varje vecka", "Jämn vecka")
+    :param current_date: Nuvarande datum och tid
+    :return: Nästa datum som datetime-objekt
+    """
+    if frequency == "Varje vecka":
+        return current_date + timedelta(weeks=1)
+    elif frequency == "Jämn vecka":
+        return current_date + timedelta(weeks=2) if current_date.isocalendar()[1] % 2 == 0 else current_date + timedelta(weeks=1)
+    # Lägg till fler regler här baserat på behov
     else:
-        raise ValueError(f"Okänt återkommande mönster: {tomningsfrekvens}")
+        raise ValueError("Frekvensen stöds inte")

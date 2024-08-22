@@ -1,44 +1,63 @@
-# gui.ui_elements.button_elements.py
+# gui.ui_elements.button_elements.py : Customized buttons with hover effects
 from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QGridLayout
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, Qt
+
 
 
 class CustomButtons(QVBoxLayout):
     def __init__(self, navigation_manager, parent=None):
         super().__init__(parent)
-
         button_texts = ["Uppdrag", "Skapa uppdrag", "Sök uppdrag", "Inställningar", "Historik", "Statistik"]
         for text in button_texts:
             button = self.create_button(text, lambda checked, page_name=text: navigation_manager.display_page(page_name))
             self.addWidget(button)
 
-    # Skapar en knapp och kopplar den till en funktion.
+
     @staticmethod
     def create_button(label: str, callback) -> QPushButton:
-        """
-        :param label: Knappens etikett.
-        :param callback: Funktion att anropa när knappen trycks.
-        :return: En QPushButton-instans.
-        """
+        """Create a QPushButton with custom styling."""
         button = QPushButton(label)
+        button.setFixedSize(QSize(150, 40))
         button.clicked.connect(callback)
+        button.setStyleSheet(
+            """
+            QPushButton {
+                background-color: #8B0000;  /* Dark red color */
+                color: #ffffff;
+                border-radius: 10px;
+                border: none;
+                padding: 10px;
+                font-size: 16px;  /* Increased font size */
+                font-weight: bold;  /* Bold font */
+            }
+            QPushButton:hover {
+                background-color: #600000;  /* Slightly darker red on hover */
+            }
+            QPushButton:pressed {
+                background-color: #4B0000;  /* Even darker red when pressed */
+            }
+            """
+        )
         return button
 
-    # Skapar ett rutnät med knappar för olika handlingar.
     @staticmethod
-    def create_button_grid(actions: list) -> QGridLayout:
-        """
-        :return: QGridLayout som innehåller knapparna.
-        """
+    def create_button_grid(actions: list, columns: int = 3,
+                           h_spacing: int = 10, v_spacing: int = 10,
+                           margins: tuple = (10, 10, 10, 10),
+                           alignment: Qt.AlignmentFlag = Qt.AlignCenter) -> QGridLayout:
+        """Create a grid of buttons with customizable layout options."""
         grid_layout = QGridLayout()
-        button_size = QSize(150, 50)
+        grid_layout.setHorizontalSpacing(h_spacing)
+        grid_layout.setVerticalSpacing(v_spacing)
+        grid_layout.setContentsMargins(*margins)
 
-        for i, (label, action) in enumerate(actions):
-            button = CustomButtons.create_button(label, action)
-            button.setFixedSize(button_size)
-            grid_layout.addWidget(button, 0, i)
-
-        grid_layout.setHorizontalSpacing(10)
-        grid_layout.setVerticalSpacing(10)
+        for i, (label, callback) in enumerate(actions):  # Removed *button_args
+            button = CustomButtons.create_button(label, callback)
+            row = i // columns
+            col = i % columns
+            grid_layout.addWidget(button, row, col, alignment)
 
         return grid_layout
+
+
+

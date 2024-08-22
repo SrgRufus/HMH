@@ -9,41 +9,37 @@ from database.managers.recurrence_manager import RecurrenceManager
 from database.managers.task_manager import TaskManager
 from handlers.central_event_handler import event_handler
 
+def initialize_database():
+    """Initierar databasen och returnerar DBManager instansen"""
+    db_manager = DBManager(DB_PATH)
+    db_manager.init_db()
+    return db_manager
 
-# Om du vill behålla testkoden, flytta den till en separat funktion
-def test_function():
-    def some_potentially_failing_function(ska_kasta_undantag):
-        if ska_kasta_undantag:
-            raise ValueError("Ett exempel på ett undantag")
-        return "Funktionen kördes utan problem"
+def initialize_managers():
+    """Initiera och returnera de "managers" som krävs för applikationen."""
+    recurrence_manager = RecurrenceManager()
+    event_manager = EventManager(recurrence_manager=recurrence_manager)
+    task_manager = TaskManager()
+    return recurrence_manager, event_manager, task_manager
 
-    try:
-        result = some_potentially_failing_function(True)  # Här skickar vi True som argument
-        print(result)
-    except ValueError as e:
-        print(f"Ett fel inträffade: {e}")
+def register_event_handlers():
+    """Registrerar globala event hanterare för applikationen"""
+    event_handler.register_handler('task_created', on_task_created)
 
-# Definiera en funktion som hanterar händelsen
 def on_task_created(task_data):
+    """Hanterar funktionen som kallas när ett uppdrag skapas"""
     print(f"Task created: {task_data}")
-    # Här kan du lägga logik för att uppdatera UI, logga eller något annat
 
-# Registrera händelsehanteraren för 'task_created'
-event_handler.register_handler('task_created', on_task_created)
-
-# Den riktiga main-funktionen för att starta din applikation
 def main():
     app = QApplication(sys.argv)
 
-    # Initialiserar databas manager (DBManager)
-    db_manager = DBManager(DB_PATH)
-    db_manager.init_db()
+    # Initiering databas och managers, typ
+    initialize_database()
+    initialize_managers()
+    register_event_handlers()
 
-    # Skapar RecurrenceManager, EventManager, TaskManager och MainWindow-klassen och kopplar ihop dem
-    recurrence_manager = RecurrenceManager(DB_PATH)
-    event_manager = EventManager(DB_PATH, recurrence_manager)
-    task_manager = TaskManager(DB_PATH, event_manager)
-    window = MainWindow(DB_PATH, event_manager, task_manager)
+    # Initiera och visa första sidan i applikationen
+    window = MainWindow()
     window.show()
 
     sys.exit(app.exec_())

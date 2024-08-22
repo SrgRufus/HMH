@@ -1,50 +1,57 @@
-# gui.managers.page_manager.py
-from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout
-from PyQt5.Qt import Qt, QFont
-
-from gui.create_task import CreateTaskDialog
+# gui.managers.page_manager.py : Refactored for modularity and extensibility
+from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout, QApplication
+from PyQt5.QtGui import QFont, QPixmap
+from PyQt5.QtCore import Qt
 from gui.list_tasks import ListTasks
+from gui.create_task_page import CreateTaskDialog
 
 
 class PageManager:
     def __init__(self, main_window):
         self.main_window = main_window
-        self.pages = {}
+
 
     def create_pages(self):
-        # Skapa sidor och lägg till dem i pages-ordboken
-        self.pages["Hem"] = self.create_home_page()
-        self.pages["Uppdrag"] = self.create_tasks_page()
-        self.pages["Skapa Uppdrag"] = self.create_create_task_page()
-        self.pages["Ändra Uppdrag"] = self.edit_task()
+        """Skapa och returnera en ordbok på alla namnen på sidorna"""
+        pages = {
+            "Hem": self.create_home_page(),
+            "Skapa Uppdrag": self.create_create_task_page(),
+            "Uppdrag": self.create_tasks_page(),
+        }
+        print("Pages created:", pages.keys()) #Debug print
+        return pages
 
-        # Lägg till fler sidor om det behövs
-        return self.pages
 
-    @staticmethod
-    def create_home_page() -> QWidget:
+    def create_home_page(self) -> QWidget:
+        """Skapa sidan för "Hem"."""
         home_widget = QWidget()
         layout = QVBoxLayout(home_widget)
 
+        logo_label = QLabel(self.main_window)
+        pixmap = QPixmap("assets/final_super_rad_logo.png")  # Ensure the logo is in the 'assets' folder
+
+        scaled_pixmap = pixmap.scaled(1600, 700, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        logo_label.setPixmap(scaled_pixmap)
+        logo_label.setAlignment(Qt.AlignCenter)
+
+
         welcome_label = QLabel("Välkommen till Henry's Molok Hanterare, eller HMH (Patent pending)")
-        welcome_label.setFont(QFont("Arial", 16, QFont.Bold))
-        welcome_label.setStyleSheet("color: #2E8B57;")
+        welcome_label.setFont(QFont("Arial", 20, QFont.Bold))
+        welcome_label.setStyleSheet("color: #0078d7;")
         welcome_label.setAlignment(Qt.AlignCenter)
 
+        layout.addWidget(logo_label)
         layout.addWidget(welcome_label)
+        layout.setAlignment(Qt.AlignCenter)
         return home_widget
 
     def create_tasks_page(self) -> QWidget:
-        # Logik för att skapa Uppdrag-sidan
-        tasks_page = ListTasks(self.main_window, self.main_window.db_path, self.main_window.event_manager)
-        return tasks_page
+            """Skapa sidan för "Uppdrag"."""
+            return ListTasks(self.main_window, self.main_window.event_manager)
+
 
     def create_create_task_page(self) -> QWidget:
-        # Logik för att skapa "Skapa Uppdrag"-sidan
-        create_task_page = CreateTaskDialog(self.main_window, self.main_window.db_path, self.main_window.event_manager)
-        return create_task_page
+        """Skapa sidan för att "Skapa Uppdrag"."""
+        return CreateTaskDialog(self.main_window, self.main_window.event_manager)
 
-    def edit_task(self) -> QWidget:
-        edit_task = EditTask(self.edit_task, self.edit_task.db_path, self.edit_task.event_manager)
-        return edit_task
     # Lägg till fler metoder för att skapa andra sidor om det behövs

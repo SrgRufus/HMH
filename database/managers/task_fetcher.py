@@ -1,33 +1,30 @@
 # database.managers.task_fetcher.py
-from database.queries.assignment_queries import (
-    SELECT_ALL_TASKS, SELECT_TASKS_SORTED_BY_DATE, SELECT_TASKS_FOR_CURRENT_WEEK,
-    SELECT_TASK_BY_ID
-)
 from database.models import Task
-from database.operations import fetch_all
-from database.connection import get_db_connection
+from database.connection import Session as DBSession
+from functools import lru_cache
 
 
 class TaskFetcher:
-    def __init__(self, db_path: str):
-        self.db_path = db_path
+    def __init__(self):
+        self.session = DBSession()
 
-    def fetch_all_tasks(self):
-        rows = fetch_all(self.db_path, SELECT_ALL_TASKS)
-        return [Task(*row) for row in rows]
+    def fetch_all_tasks(self, page_num=1, page_size=20):
+        """Fetch tasks with pagination support."""
+        return self.session.query(Task).limit(page_size).offset((page_num - 1) * page_size).all()
 
+    @lru_cache(maxsize=128)
     def fetch_tasks_sorted_by_date(self):
-        rows = fetch_all(self.db_path, SELECT_TASKS_SORTED_BY_DATE)
-        return [Task(*row) for row in rows]
+        """Fetch tasks sorted by their next occurrence date, with caching."""
+        return self.session.query(Task).order_by(Task.next_occurrence_date.asc()).all()
 
     def fetch_tasks_for_current_week(self, start_of_week, end_of_week):
-        rows = fetch_all(self.db_path, SELECT_TASKS_FOR_CURRENT_WEEK, (start_of_week, end_of_week))
-        return [Task(*row) for row in rows]
+        """Fetch tasks for the current week."""
+        return self.session.query(Task).filter(Task.next_occurrence_date.between(start_of_week, end_of_week)).all()
 
-    def fetch_task_by_id(self, assignment_id):
-        with get_db_connection(self.db_path) as connection:
-            cursor = connection.cursor()
-            query = SELECT_TASK_BY_ID
-            cursor.execute(query, (assignment_id,))
-            cursor.fetchone()
-            # Fortsätt bearbeta datan här
+    def fetch_task_by_id(self, task_id):
+        """Fetch a single task by its ID."""
+        return self.session.query(Task).get(task_id)
+
+    def close(self):
+        self.session.close()
+

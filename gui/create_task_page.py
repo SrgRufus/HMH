@@ -1,36 +1,31 @@
-# gui.create_task.py
+# gui.create_task_page.py : Förbättrad version med validering och feedback användaren
 from datetime import datetime
-from PyQt5.QtWidgets import (
-    QWidget, QLabel, QVBoxLayout, QHBoxLayout, QLineEdit, QComboBox, QPushButton, QMessageBox
-)
-
+from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QLineEdit, QComboBox, QPushButton, QMessageBox
 from database.managers.task_manager import TaskManager
 from utils.recurrence_utils import calculate_next_date
-from database.managers.event_manager import EventManager
 
 
 class CreateTaskDialog(QWidget):
-    def __init__(self, parent, db_path: str, event_manager: EventManager):
+    def __init__(self, parent, event_manager=None):
         super().__init__(parent)
         self.main_window = parent
-        self.manager = TaskManager(db_path=db_path, event_manager=event_manager)
-        self.event_manager = EventManager
+        self.manager = TaskManager()
+        self.event_manager = event_manager  # Lagra en "event" manager för det här fönstret
 
         self.setWindowTitle("Skapa Nytt Uppdrag")
 
-        # Layouts
         main_layout = QVBoxLayout()
         form_layout = QVBoxLayout()
         button_layout = QHBoxLayout()
 
-        # Etiketter och LineEdit Widgets för obligatoriska fält.
+        # Inmatningsfält
         self.kommun_input = QLineEdit()
         self.adress_input = QLineEdit()
         self.ort_input = QLineEdit()
         self.material_dropdown = QComboBox()
         self.tomningsfrekvens_dropdown = QComboBox()
 
-        # Lägg till 'dropdown' menyer
+        # Fyller "dropdown" menyer med val för material och tömningsfrekvens
         self.material_dropdown.addItems(["Kartong", "Plast", "Glas", "Metall", "Tidningar"])
         self.tomningsfrekvens_dropdown.addItems([
             "Måndag, Varje vecka",
@@ -47,11 +42,11 @@ class CreateTaskDialog(QWidget):
             "Var 4:e vecka, En gång i Månaden",
             "Var 6:e vecka",
             "Var 12:e vecka",
-            "Den första Torsdagen i Månaden",
+            "Den första Torsdagen",
             "Den 25:e varje månad"
         ])
 
-        # Input: Obligatoriska fält
+        # Lägg till input widgets för formuläret skapa uppdrag
         form_layout.addWidget(QLabel("Kommun:"))
         form_layout.addWidget(self.kommun_input)
         form_layout.addWidget(QLabel("Adress:"))
@@ -63,7 +58,7 @@ class CreateTaskDialog(QWidget):
         form_layout.addWidget(QLabel("Tömningsfrekvens:"))
         form_layout.addWidget(self.tomningsfrekvens_dropdown)
 
-        # Input: Valfria fält
+        # Extra inmatningsfält
         self.info_input = QLineEdit()
         self.chauffor_input = QLineEdit()
         self.koordinater_input = QLineEdit()
@@ -75,18 +70,18 @@ class CreateTaskDialog(QWidget):
         form_layout.addWidget(QLabel("Koordinater:"))
         form_layout.addWidget(self.koordinater_input)
 
-        # Knapp: Submit/Skapa Uppdrag
+        # Submit knapp med "klick" hanterare
         self.submit_button = QPushButton("Skapa Uppdrag")
         self.submit_button.clicked.connect(self.submit)
         button_layout.addWidget(self.submit_button)
 
-        # Kombinerar layouts
         main_layout.addLayout(form_layout)
         main_layout.addLayout(button_layout)
         self.setLayout(main_layout)
 
-    # Hämta data från inputs
+
     def submit(self):
+        # Samla in data från formulär
         data = {
             'kommun': self.kommun_input.text(),
             'adress': self.adress_input.text(),
@@ -98,35 +93,35 @@ class CreateTaskDialog(QWidget):
             'koordinater': self.koordinater_input.text()
         }
 
-        # Validera att alla obligatoriska fält är ifyllda
-        if not all([data['Kommun'], data['Adress'], data['Ort'], data['Material'], data['Tomningsfrekvens']]):
+        # Grundläggande feedback till användare
+        if not all([data['kommun'], data['adress'], data['ort'], data['material'], data['tomningsfrekvens']]):
             QMessageBox.critical(self, "Fel", "Alla obligatoriska fält måste fyllas i.")
             return
-            # Beräkna nästa tömningsdatum
+
         try:
-
+            # Räkna ut nästa datum (next occurrence date) baserat på tömningsfrekvens
             current_date = datetime.now()
-            next_date: datetime = calculate_next_date(data['Tomningsfrekvens'], current_date)
+            next_date = calculate_next_date(data['tomningsfrekvens'], current_date)
 
-            # Skapa uppdraget i databasen
+
+            # Skapa Uppdrag
             self.manager.create_task(
-                kommun=data['Kommun'],
-                adress=data['Adress'],
-                ort=data['Ort'],
-                material=data['Material'],
-                tomningsfrekvens=data['Tomningsfrekvens'],
-                info=data['Info'],
-                chauffor=data['Chauffor'],
-                koordinater=data['Koordinater'],
-                next_occurrence_date=next_date  # Skicka med next_occurrence_date här
+                kommun=data['kommun'],
+                adress=data['adress'],
+                ort=data['ort'],
+                material=data['material'],
+                tomningsfrekvens=data['tomningsfrekvens'],
+                info=data['info'],
+                chauffor=data['chauffor'],
+                koordinater=data['koordinater'],
+                next_occurrence_date=next_date
             )
 
-            # Success! Bekräftelsemeddelande
-            QMessageBox.information(self, "Uppdrag Skapat",
-                                    f"Uppdraget har skapats framgångsrikt!\nNästa datum: {next_date.strftime('%Y-%m-%d')}")
 
-            # Navigera tillbaka till huvudfönstret efter skapandet
+            # Ger feedback till användaren
+            QMessageBox.information(self, "Uppdrag Skapat", f"Uppdraget har skapats framgångsrikt!\nNästa datum: {next_date.strftime('%Y-%m-%d')}")
             self.main_window.display_page("Uppdrag")
+
 
         except ValueError as e:
             QMessageBox.critical(self, "Fel", str(e))

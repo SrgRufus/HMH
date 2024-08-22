@@ -1,36 +1,34 @@
 # database.db_manager.py : Grundläggande databasoperationer.
 from config import DB_PATH
-from database.connection import get_db_connection
-from database.operations import execute_query
-from database.queries.task_queries import CREATE_TASKS_TABLE
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from contextlib import contextmanager
+from database.models import Base
 
-
-# Hanterar grundläggande databasoperationer som initiering av databasen.
 class DBManager:
-
-    # Initierar en ny instans av DBManager med angiven databasväg
     def __init__(self, db_path=DB_PATH):
-        """
-        :param db_path: Sökvägen till databasfilen.
-        """
         self.db_path = db_path
-        self.conn = None
-        self.cursor = None
+        self.engine = create_engine(f'sqlite:///{db_path}', echo=True, pool_size=10, max_overflow=20)
+        self.Session = sessionmaker(bind=self.engine)
 
-    # Initierar databasen genom att skapa nödvändiga tabeller.
+
     def init_db(self):
-        execute_query(self.db_path, CREATE_TASKS_TABLE)
+        """Initierar databasen och skapar alla tabeller"""
+        Base.metadata.create_all(self.engine)
 
-    # Hämtar alla rader för en given query.
-    def fetch_all(self, query):
-        """
-        :param query: SQL-frågan som ska exekveras.
-        :return: Lista av tuples med resultatet av frågan.
-        """
-        print(f'Opening connection to {self.db_path}')
-        with get_db_connection(self.db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute(query)
-            rows = cursor.fetchall()
-        print('Connection closed')
-        return rows
+    @contextmanager
+    def get_session(self):
+        """Context manager för sessions hantering."""
+        session = self.Session()
+        try:
+            yield session
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            raise RuntimeError(f"Error during session: {e}")
+        finally:
+            session.close()
+
+    def close(self):
+        """Stäng databas anslutningen"""
+        self.engine.dispose()

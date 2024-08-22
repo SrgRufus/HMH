@@ -1,6 +1,6 @@
 # utils.task_utils.py
+from datetime import datetime
 from utils.recurrence_utils import recurrence_mapping
-from utils.recurrence_utils import calculate_next_date
 
 
 def validate_task_data(tomningsfrekvens):
@@ -23,4 +23,8 @@ def calculate_next_occurrence(tomningsfrekvens, current_date):
     :param current_date: Aktuellt datum.
     :return: Nästa datum som en datetime.
     """
-    return calculate_next_date(tomningsfrekvens, current_date)
+    if not isinstance(current_date, datetime):
+        raise ValueError("current_date måste vara ett datetime-objekt")
+    return recurrence_mapping[tomningsfrekvens](current_date)
+
+

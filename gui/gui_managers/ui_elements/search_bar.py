@@ -1,27 +1,19 @@
 # gui.ui_elements.search_bar.py
-from PyQt5.QtWidgets import QHBoxLayout, QLineEdit, QPushButton, QLabel, QMessageBox
+# gui.ui_elements.search_bar.py : Enhanced for extensibility
+from PyQt5.QtWidgets import QLineEdit
 
-
-class SearchBar(QHBoxLayout):
+class SearchBar(QLineEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setPlaceholderText("Sök...")
+        self.textChanged.connect(self.filter_tasks)
 
-        self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Sök på Ort, Kommun, eller material")
-        self.search_input.returnPressed.connect(self.perform_search)
+    @staticmethod
+    def filter_tasks(text):
+        """Implementera söklogik här, efter jag har sökt reda på hur fan man gör det."""
+        print(f"Filtering tasks based on input: {text}")
+        # Placeholder for search/filter logic
+        # Example: self.parent().task_manager.filter_tasks(text)
+        pass
 
-        search_button = QPushButton("Sök")
-        search_button.clicked.connect(self.perform_search)
 
-        self.addWidget(self.search_input)
-        self.addWidget(search_button)
-
-        self.search_result_label = QLabel("")
-
-    def perform_search(self):
-        search_query = self.search_input.text().strip()
-        if search_query:
-            self.search_result_label.setText(f"Söker efter: {search_query}")
-            # Här kan du integrera den faktiska söklogiken och visa resultat
-        else:
-            QMessageBox.warning(self.parent(), "Söksträng saknas", "Ange ett giltigt sökvärde.")

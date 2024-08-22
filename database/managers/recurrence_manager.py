@@ -1,32 +1,21 @@
 # database.managers.recurrence_manager.py : Hanterar återkommande uppdrag.
-from datetime import datetime, timedelta
-
+from datetime import timedelta
+from utils.date_utils import validate_and_parse_date
 from database.models import Task
-from handlers.central_event_handler import event_handler
+from database.connection import Session as DBSession
 
 
 class RecurrenceManager:
-    def __init__(self, db_path: str) -> None:
-        self.db_path = db_path
+    def __init__(self):
+        self.session = DBSession()
 
-    @staticmethod # Om den inte fungerar, ta bort staticmethod och addera self till argumentet utav funktionen
-    def create_recurring_task(task, recurrence_interval_days, event_manager):
-        """
-        Skapar ett återkommande task baserat på ett befintligt task.
-        :param task: Det befintliga uppdraget (task) att basera det nya på.
-        :param recurrence_interval_days: Antal dagar mellan varje förekomst.
-        :param event_manager: Instans av EventManager för att hantera uppdrag.
-        :return: Det nya återkommande Task-objektet.
-        """
-
-        # Säkerställ att next_occurrence_date är ett datetime-objekt
-        if isinstance(task.next_occurrence_date, str):
-            task.next_occurrence_date = datetime.strptime(task.next_occurrence_date, '%Y-%m-%d')
-
-        # Skapa nästa datum för det återkommande uppdraget
+    @staticmethod
+    def calculate_recurring_task(task, recurrence_interval_days):
+        # Validate and parse the next occurrence date
+        task.next_occurrence_date = validate_and_parse_date(task.next_occurrence_date)
+        # Calculate the next date based on recurrence interval
         next_date = task.next_occurrence_date + timedelta(days=recurrence_interval_days)
-
-        # Skapa ett nytt Task-objekt baserat på det ursprungliga uppdraget
+        # Create a new task with updated next occurrence date
         new_task = Task(
             kommun=task.kommun,
             adress=task.adress,
@@ -36,12 +25,17 @@ class RecurrenceManager:
             info=task.info,
             chauffor=task.chauffor,
             koordinater=task.koordinater,
-            status=task.status,
-            senast_hamtad=task.senast_hamtad,
-            image_path=task.image_path,
-            next_occurrence_date=next_date  # Detta är nu säkert ett datetime-objekt
+            next_occurrence_date=next_date
         )
+        return new_task
 
-        # Infoga det nya uppdraget i databasen och trigga event
+    def create_and_add_recurring_task(self, task, recurrence_interval_days, event_manager):
+        # Use the method to calculate and create a recurring task
+        new_task = self.calculate_recurring_task(task, recurrence_interval_days)
+        # Insert the new task into the database and trigger an event
         event_manager.insert_task(new_task)
-        event_handler.trigger_event('task_created', new_task)
+        event_manager.event_handler.trigger_event('task_created', new_task)
+
+    def close(self):
+        # Close the session when done
+        self.session.close()

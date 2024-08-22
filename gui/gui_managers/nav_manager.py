@@ -1,51 +1,54 @@
 # gui.gui_managers.nav_manager.py
-from PyQt5.QtWidgets import QMenu, QMenuBar
-
-
 class NavigationManager:
     def __init__(self, main_window):
         self.main_window = main_window
-        self.menu_bar = QMenuBar(main_window)
-        self.pages = main_window.pages
+
 
     def create_menus(self):
-        # Skapa menyraden och dess menyer
-        file_menu = QMenu("&File", self.main_window)
-        view_menu = QMenu("&View", self.main_window)
-        help_menu = QMenu("&Help", self.main_window)
+        """Skapa huvud applikationens menyer."""
+        menu_bar = self.main_window.menuBar()
 
-        # Lägg till menyalternativ för File-menyn
-        file_menu.addAction("Open", self.open_file)
-        file_menu.addAction("Exit", self.main_window.close)
+        # Skapa knapp för att navigera till Hem vyn
+        self._create_home_menu(menu_bar)
 
-        # Lägg till menyalternativ för View-menyn
-        view_menu.addAction("Home", lambda: self.display_page("Hem"))
-        view_menu.addAction("Tasks", lambda: self.display_page("Uppdrag"))
-        view_menu.addAction("Create Task", lambda: self.display_page("Skapa Uppdrag"))
+        # Skapa knapp för att navigera till Uppdrags vyn
+        self._create_task_menu(menu_bar)
 
-        # Lägg till menyalternativ för Help-menyn
-        help_menu.addAction("About", self.show_about_dialog)
 
-        # Lägg till menyerna till menyraden
-        self.menu_bar.addMenu(file_menu)
-        self.menu_bar.addMenu(view_menu)
-        self.menu_bar.addMenu(help_menu)
+    def _create_home_menu(self, menu_bar):
+        """Skapa "Hem"-sidans meny"""
+        home_menu = menu_bar.addMenu("Hem")
+        home_menu.addAction("Hem", lambda: self.display_page("Hem"))
 
-        # Sätt menyraden i huvudfönstret
-        self.main_window.setMenuBar(self.menu_bar)
 
+    def _create_task_menu(self, menu_bar):
+        """Skapa uppdragssidans meny"""
+        task_menu = menu_bar.addMenu("Uppdrag")
+        task_menu.addAction("Skapa Uppdrag", lambda: self.display_page("Skapa Uppdrag"))
+        task_menu.addAction("Visa Uppdrag", lambda: self.display_page("Uppdrag"))
+
+    # Forcefully add and display
     def display_page(self, page_name):
-        # Visa den valda sidan med felhantering
-        try:
-            page = self.pages[page_name]
-            self.main_window.stacked_widget.setCurrentWidget(page)
-        except KeyError:
-            print(f"Sidan {page_name} finns inte.")
+        """Display the requested page by name."""
+        print(f"Attempting to display page '{page_name}'")
+        page = self.main_window.pages.get(page_name)
+        if page:
+            print(f"Page '{page_name}' exists. Widget: {page}")
 
-    def open_file(self):
-        # Platshållare: Öppna Fil, logik för att öppna en fil
-        print("Open file dialog")
+            # Ensure the page is added to the stacked widget
+            index = self.main_window.stacked_widget.indexOf(page)
+            if index == -1:
+                print(f"Page '{page_name}' not found in stacked widget. Adding it now.")
+                self.main_window.stacked_widget.addWidget(page)
+                index = self.main_window.stacked_widget.indexOf(page)
 
-    def show_about_dialog(self):
-        # Logik för att visa en dialogruta med information om applikationen
-        print("Show about dialog")
+            # Display the page
+            if index != -1:
+                self.main_window.stacked_widget.setCurrentIndex(index)
+                print(f"Page '{page_name}' displayed at index {index}.")
+            else:
+                print(f"Failed to find or add page '{page_name}' to stacked widget.")
+        else:
+            print(f"Page '{page_name}' not found. Please check if the page is correctly initialized.")
+
+

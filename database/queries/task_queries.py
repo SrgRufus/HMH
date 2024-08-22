@@ -1,71 +1,62 @@
-# database.managers.queries.assignments.py
+# database.queries.task_queries.py
+from datetime import datetime
+from sqlalchemy.orm import sessionmaker
+from database.models import Task
+from database.connection import engine
 
-# Skapa tabell
-CREATE_TASKS_TABLE = """
-CREATE TABLE IF NOT EXISTS assignments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    kommun TEXT,
-    adress TEXT,
-    ort TEXT,
-    material TEXT,
-    tomningsfrekvens TEXT,
-    info TEXT,
-    chauffor TEXT,
-    koordinater TEXT,
-    status TEXT,
-    senast_hamtad DATE,
-    image_path TEXT,
-    next_occurrence_date DATE
-);
-"""
 
-# SQL fråga: Insert
-INSERT_ASSIGNMENT = """
-INSERT INTO assignments 
-(kommun, adress, ort, material, 
-tomningsfrekvens, info, chauffor, 
-koordinater, next_occurrence_date, status)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')
-"""
+Session = sessionmaker(bind=engine)
+session = Session()
 
-INSERT_RECURRING_ASSIGNMENT = """
-INSERT INTO assignments 
-(kommun, adress, ort, material, tomningsfrekvens, 
-info, chauffor, koordinater, status, senast_hamtad, 
-image_path, next_occurrence_date)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-"""
 
-# SQL fråga: Update
-UPDATE_JOB_STATUS = """
-UPDATE assignments 
-SET status = ?, senast_hamtad = CURRENT_DATE, image_path = ? 
-WHERE id = ?
-"""
+def get_tasks_by_date(date):
+    """
+    Hämta uppdrag baserat på ett datum.
+    Validera för att försäkra mig om att det är ett datetime objekt
+    """
+    if isinstance(date, str):
+        try:
+            date = datetime.strptime(date, '%Y-%m-%d')
+        except ValueError:
+            raise ValueError(f"Invalid date format: {date}. Expected format is YYYY-MM-DD.")
 
-# SQL fråga: Radera
-DELETE_ASSIGNMENT = """
-DELETE FROM assignments WHERE id = ?
-"""
+    if not isinstance(date, datetime):
+        raise ValueError(
+            "The 'date' parameter must be a datetime object or a valid date string in 'YYYY-MM-DD' format.")
 
-# SQL fråga: Val, selektion:
-# Hämtar alla uppdrag
-SELECT_ALL_TASKS = """
-SELECT * FROM assignments
-"""
+    return session.query(Task).filter(Task.next_occurrence_date == date).all()
 
-# Hämtar och sorterar uppdrag efter datum
-SELECT_TASKS_SORTED_BY_DATE = """
-SELECT * FROM assignments 
-WHERE next_occurrence_date IS NOT NULL 
-ORDER BY next_occurrence_date ASC
-"""
 
-# Hämtar uppdrag för aktuell vecka
-SELECT_TASKS_FOR_CURRENT_WEEK = """
-SELECT * FROM assignments 
-WHERE next_occurrence_date BETWEEN ? AND ?
-"""
+def get_all_tasks():
+    """Hämta alla uppdrag."""
+    return session.query(Task).all()
 
-# Ställer frågan till SQL att välja ett uppdrag baserat på dess ID
-SELECT_TASK_BY_ID = "SELECT * FROM assignments WHERE id = ?"
+
+# ORM-based replacements for raw SQL queries:
+def create_task(task_data):
+    """Mata in ett nytt uppdrag i databasen."""
+    new_task = Task(**task_data)
+    session.add(new_task)
+    session.commit()
+
+
+def update_task_status(task_id, status, image_path=None):
+    """Uppdatera status för ett uppdrag."""
+    task = session.query(Task).get(task_id)
+    if task:
+        task.status = status
+        if image_path:
+            task.image_path = image_path
+        session.commit()
+    else:
+        raise ValueError(f"Task with ID {task_id} not found.")
+
+
+def delete_task(task_id):
+    """Radera ett uppdrag med dens ID."""
+    task = session.query(Task).get(task_id)
+    if task:
+        session.delete(task)
+        session.commit()
+    else:
+        raise ValueError(f"Task with ID {task_id} not found.")

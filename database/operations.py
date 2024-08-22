@@ -1,53 +1,55 @@
 # database.operations.py
+# database.operations.py : Adding batch operations and enhanced error handling
 import logging
-import sqlite3
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from database.connection import engine
 
-from database.connection import get_db_connection
-
-# Konfigurera loggning
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+Session = sessionmaker(bind=engine)
 
-# Exekverar en SQL-fråga med felhantering.
-def execute_query(db_path, query, parameters=()):
-    """
-    :param db_path: Sökväg till databasen.
-    :param query: SQL-frågan som ska köras.
-    :param parameters: Parametrar att binda till SQL-frågan.
-    """
+def execute_query(query_func, *args, **kwargs):
+    """Execute a query with proper error handling."""
+    session = Session()
     try:
-        with get_db_connection(db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute(query, parameters)
-            conn.commit()
-            logging.info(f"Successfully executed query: {query} with parameters: {parameters}")
-            return cursor  # Returnera cursor för vidare användning
-    except sqlite3.Error as e:
+        result = query_func(session, *args, **kwargs)
+        session.commit()
+        logging.info(f"Successfully executed query with parameters: {args}, {kwargs}")
+        return result
+    except IntegrityError as e:
+        logging.error(f"Integrity error: {e}")
+        session.rollback()
+        raise
+    except SQLAlchemyError as e:
         logging.error(f"Database error: {e}")
+        session.rollback()
         raise
-    except Exception as e:
-        logging.error(f"General error: {e}")
-        raise
+    finally:
+        session.close()
 
-
-# Exekverar en SELECT-fråga och hämtar alla rader.
-def fetch_all(db_path, query, parameters=()):
-    """
-    :param db_path: Sökväg till databasen.
-    :param query: SQL-frågan som ska köras.
-    :param parameters: Parametrar att binda till SQL-frågan.
-    :return: Resultatuppsättningen som en lista av tuples.
-    """
+def batch_insert(model_class, data_list):
+    """Insert multiple records in a batch."""
+    session = Session()
     try:
-        with get_db_connection(db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute(query, parameters)
-            rows = cursor.fetchall()
-            logging.info(f"Successfully fetched data with query: {query} and parameters: {parameters}")
-            return rows
-    except sqlite3.Error as e:
-        logging.error(f"Database error: {e}")
+        session.bulk_insert_mappings(model_class, data_list)
+        session.commit()
+        logging.info(f"Batch insert successful for {len(data_list)} records.")
+    except SQLAlchemyError as e:
+        logging.error(f"Batch insert error: {e}")
+        session.rollback()
         raise
-    except Exception as e:
-        logging.error(f"General error: {e}")
-        raise
+    finally:
+        session.close()
+
+
+# def fetch_all(query_func, *args, **kwargs):
+#     session = Session()
+#     try:
+#         return query_func(session, *args, **kwargs)
+#     except SQLAlchemyError as e:
+#         logging.error(f"Database error: {e}")
+#         raise
+#     finally:
+#         session.close()
+
