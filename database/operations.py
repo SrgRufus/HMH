@@ -1,4 +1,3 @@
-# database.operations.py
 # database.operations.py : Adding batch operations and enhanced error handling
 import logging
 from sqlalchemy.orm import sessionmaker

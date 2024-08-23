@@ -16,7 +16,7 @@ DEFAULT_STATUS = "Pending"
 # GUI settings
 WINDOW_TITLE = "HMH: Henry's Molok Hanterare"
 WINDOW_SIZE = (800, 600)
-HOME_PAGE_WELCOME_MSG = """Välkommen till Henry's Molok Hanterare, eller HMH (Patent pending)"""
+HOME_PAGE_WELCOME_MSG = """ """
 FONT_SETTINGS = {
     "default": ("Arial", 16, True),  # Font family, size, bold
     "color": "#2E8B57"

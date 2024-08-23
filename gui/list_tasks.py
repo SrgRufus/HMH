@@ -1,8 +1,8 @@
 # gui.list_tasks.py : Enhanced version with improved task interaction and error handling
 from datetime import datetime, timedelta
 from PyQt5.QtWidgets import QVBoxLayout, QLabel, QWidget, QMessageBox
-from gui.gui_managers.ui_elements.button_elements import CustomButtons
-from gui.gui_managers.ui_elements.widgets import TaskTree
+from gui.ui_elements.button_elements import CustomButtons
+from gui.ui_elements.widgets import TaskTree
 from database.managers.task_manager import TaskManager
 
 

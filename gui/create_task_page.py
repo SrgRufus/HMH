@@ -1,22 +1,25 @@
 # gui.create_task_page.py : Förbättrad version med validering och feedback användaren
 from datetime import datetime
-from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QLineEdit, QComboBox, QPushButton, QMessageBox
+from PyQt5.QtWidgets import (
+    QWidget, QLabel, QLineEdit, QComboBox, QPushButton, QMessageBox, QGridLayout
+)
 from database.managers.task_manager import TaskManager
 from utils.recurrence_utils import calculate_next_date
 
 
 class CreateTaskDialog(QWidget):
+
     def __init__(self, parent, event_manager=None):
         super().__init__(parent)
         self.main_window = parent
         self.manager = TaskManager()
         self.event_manager = event_manager  # Lagra en "event" manager för det här fönstret
 
-        self.setWindowTitle("Skapa Nytt Uppdrag")
+        self.setWindowTitle("Skapa Uppdrag")
+        self.setMinimumSize(400, 300)  # Adjust the size as needed
 
-        main_layout = QVBoxLayout()
-        form_layout = QVBoxLayout()
-        button_layout = QHBoxLayout()
+        main_layout = QGridLayout()
+
 
         # Inmatningsfält
         self.kommun_input = QLineEdit()
@@ -25,8 +28,16 @@ class CreateTaskDialog(QWidget):
         self.material_dropdown = QComboBox()
         self.tomningsfrekvens_dropdown = QComboBox()
 
+        # Valfria Inmatningar
+        self.info_input = QLineEdit()  # Initialize info_input
+        self.chauffor_input = QLineEdit()  # Initialize chauffor_input
+        self.koordinater_input = QLineEdit()  # Initialize koordinater_input
+
         # Fyller "dropdown" menyer med val för material och tömningsfrekvens
-        self.material_dropdown.addItems(["Kartong", "Plast", "Glas", "Metall", "Tidningar"])
+        self.material_dropdown.addItems([
+            "Kartong", "Plast", "Glas",
+             "Metall", "Tidningar"
+        ])
         self.tomningsfrekvens_dropdown.addItems([
             "Måndag, Varje vecka",
             "Tisdag, Varje vecka",
@@ -46,42 +57,49 @@ class CreateTaskDialog(QWidget):
             "Den 25:e varje månad"
         ])
 
-        # Lägg till input widgets för formuläret skapa uppdrag
-        form_layout.addWidget(QLabel("Kommun:"))
-        form_layout.addWidget(self.kommun_input)
-        form_layout.addWidget(QLabel("Adress:"))
-        form_layout.addWidget(self.adress_input)
-        form_layout.addWidget(QLabel("Ort:"))
-        form_layout.addWidget(self.ort_input)
-        form_layout.addWidget(QLabel("Material:"))
-        form_layout.addWidget(self.material_dropdown)
-        form_layout.addWidget(QLabel("Tömningsfrekvens:"))
-        form_layout.addWidget(self.tomningsfrekvens_dropdown)
+        # Adding widgets to the grid layout
+        main_layout.addWidget(QLabel("Kommun:"), 0, 0)
+        main_layout.addWidget(self.kommun_input, 0, 1, 1, 2)  # Spanning 2 columns
 
-        # Extra inmatningsfält
-        self.info_input = QLineEdit()
-        self.chauffor_input = QLineEdit()
-        self.koordinater_input = QLineEdit()
+        main_layout.addWidget(QLabel("Adress:"), 1, 0)
+        main_layout.addWidget(self.adress_input, 1, 1, 1, 2)
 
-        form_layout.addWidget(QLabel("Info:"))
-        form_layout.addWidget(self.info_input)
-        form_layout.addWidget(QLabel("Chaufför:"))
-        form_layout.addWidget(self.chauffor_input)
-        form_layout.addWidget(QLabel("Koordinater:"))
-        form_layout.addWidget(self.koordinater_input)
+        main_layout.addWidget(QLabel("Ort:"), 2, 0)
+        main_layout.addWidget(self.ort_input, 2, 1, 1, 2)
 
-        # Submit knapp med "klick" hanterare
-        self.submit_button = QPushButton("Skapa Uppdrag")
+        main_layout.addWidget(QLabel("Material:"), 3, 0)
+        main_layout.addWidget(self.material_dropdown, 3, 1, 1, 2)
+
+        main_layout.addWidget(QLabel("Tömningsfrekvens:"), 4, 0)
+        main_layout.addWidget(self.tomningsfrekvens_dropdown, 4, 1, 1, 2)
+
+        main_layout.addWidget(QLabel("Info:"), 5, 0)
+        main_layout.addWidget(self.info_input, 5, 1, 1, 2)
+
+        main_layout.addWidget(QLabel("Chaufför:"), 6, 0)
+        main_layout.addWidget(self.chauffor_input, 6, 1)
+
+        main_layout.addWidget(QLabel("Koordinater:"), 6, 2)
+        main_layout.addWidget(self.koordinater_input, 6, 3)
+
+        # Create the QPushButton first
+        self.submit_button = QPushButton("Skapa Nytt Uppdrag")
+
+        # Add the button to the layout
+        main_layout.addWidget(self.submit_button, 7, 0, 1, 4)
+
+        # Now, connect the clicked signal to the submit method
         self.submit_button.clicked.connect(self.submit)
-        button_layout.addWidget(self.submit_button)
 
-        main_layout.addLayout(form_layout)
-        main_layout.addLayout(button_layout)
+        # Submit button
+        self.submit_button.clicked.connect(self.submit)
+        self.submit_button = QPushButton("Skapa Nytt Uppdrag")
+        main_layout.addWidget(self.submit_button, 7, 0, 1, 4)  # Span across the entire width
+
         self.setLayout(main_layout)
 
-
     def submit(self):
-        # Samla in data från formulär
+                # Samla in data från formulär
         data = {
             'kommun': self.kommun_input.text(),
             'adress': self.adress_input.text(),

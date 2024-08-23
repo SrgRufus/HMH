@@ -1,80 +1,70 @@
-# gui.mainwindow.py : Improved UI setup and modularization
-from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QStackedWidget
-from PyQt5.QtGui import QPixmap
+# gui.mainwindow.py : Startsida
 from PyQt5.QtCore import Qt
-from gui.gui_managers.nav_manager import NavigationManager
-from gui.gui_managers.page_manager import PageManager
-from gui.gui_managers.ui_elements.button_elements import CustomButtons
-from gui.gui_managers.ui_elements.search_bar import SearchBar
-from database.managers.task_manager import TaskManager
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QStackedWidget
+
+from database.connection import Session as DBSession
 from database.managers.event_manager import EventManager
 from database.managers.recurrence_manager import RecurrenceManager
-from database.connection import Session as DBSession
+from database.managers.task_manager import TaskManager
 
+from gui.gui_managers.nav_manager import NavigationManager
+from gui.gui_managers.page_manager import PageManager
+from gui.ui_elements.button_elements import CustomButtons
+from gui.ui_elements.search_bar import SearchBar
 
 
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-
-        self.session = DBSession() # Initialize DB session
-        self.recurrence_manager = RecurrenceManager() # Pass session to RecurrenceManager
-        self.event_manager = EventManager(self.recurrence_manager) # Pass RecurrenceManager to EventManager
-        self.task_manager = TaskManager()
-
-        self.page_manager = PageManager(self)
-        self.pages = self.page_manager.create_pages()
-
-        print("Pages initialized", self.pages)
-        # self.pages = {}
-
-        self.stacked_widget = QStackedWidget()
-        self.navigation_manager = NavigationManager(self)
-        self.setup_ui()
         self.setWindowTitle("HMH: Henry's Molok Hanterare")
         self.setGeometry(100, 100, 1200, 800)
+
+        # Initialize necessary managers first
+        self.session = DBSession()
+        self.recurrence_manager = RecurrenceManager()
+        self.event_manager = EventManager(self.recurrence_manager)
+        self.task_manager = TaskManager()
+
+        # Step 1: Set up the stacked widget
+        self.stacked_widget = QStackedWidget()
+        self.setCentralWidget(self.stacked_widget)
+
+        # Step 2: Initialize the NavigationManager first with a placeholder for page_manager
+        self.navigation_manager = NavigationManager(self, page_manager=None)
+
+        # Step 3: Initialize the PageManager with only the MainWindow
+        self.page_manager = PageManager(self)
+
+        # Step 4: Now that both managers are initialized, update NavigationManager with the actual PageManager
+        self.navigation_manager.page_manager = self.page_manager
+
+        # Step 5: Initialize the UI elements
+        self.setup_ui()
+
+        # Step 6: Apply dark mode to the UI
         self.apply_dark_mode()
 
     def setup_ui(self) -> None:
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        layout = QVBoxLayout(central_widget)
+        # Create the home page and add it to the stacked widget
+        home_page = self.page_manager.create_home_page()
+        self.stacked_widget.addWidget(home_page)
 
-        # Lägg till en logotyp i framtiden
-        # Se till att logotypen ligger i "assets" mappen i root
+        # Display the home page initially
+        self.page_manager.display_page("Hem")
 
-        logo_label = QLabel(self)
+        # Insert logo on the home page
+        logo_label = QLabel()
         pixmap = QPixmap("assets/remondis-logo.png")
         logo_label.setPixmap(pixmap)
         logo_label.setAlignment(Qt.AlignCenter)
-        layout.addWidget(logo_label)
 
+        # Add the logo to the home page's layout
+        home_layout = self.stacked_widget.widget(self.stacked_widget.indexOf(home_page)).layout()
+        home_layout.addWidget(logo_label)
 
-        layout.addWidget(self.stacked_widget)
-        # self._populate_stacked_widget()
-
-        # Infoga navigeringsmenyer
-        # Directly add and display the 'Hem' page
-        home_page = self.page_manager.create_home_page()
-        self.stacked_widget.addWidget(home_page)
-        index = self.stacked_widget.indexOf(home_page)
-        print(f"'Hem' page added at index {index}.")  # Debugging info
-
-        # Attempt to display the 'Hem' page directly
-        self.stacked_widget.setCurrentIndex(index)
-        print(f"Displaying 'Hem' page directly.")
-
+        # Create the navigation menus
         self.navigation_manager.create_menus()
-
-        # self.navigation_manager.display_page("Hem")
-
-    def _populate_stacked_widget(self) -> None:
-        for page_name, page_widget in self.pages.items():
-            print(f"Adding page {page_name} to stacked widget.")  # Debug print
-            self.stacked_widget.addWidget(page_widget)
-            widget_index = self.stacked_widget.indexOf(page_widget)
-            print(f"Page '{page_name}' added at index {widget_index}.")  # Confirm the index
-
 
     def apply_dark_mode(self):
         """Apply a dark theme to the entire application."""
@@ -102,20 +92,8 @@ class MainWindow(QMainWindow):
                 background-color: {dark_palette["background-color"]};
                 color: {dark_palette["color"]};
             }}
-            QPushButton {{
-                background-color: {dark_palette["background-color"]};
-                border: 1px solid {dark_palette["border-color"]};
-                border-radius: 5px;
-                padding: 5px;
-                color: {dark_palette["color"]};
-            }}
-            QPushButton:hover {{
-                background-color: #3a3a3a;
-                border: 1px solid #0078d7;
-            }}
             """
         )
-
 
     def _initialize_ui_elements(self, layout: QVBoxLayout) -> None:
         self.search_bar = SearchBar(self)

@@ -1,24 +1,36 @@
 # gui.ui_elements.button_elements.py : Customized buttons with hover effects
-from PyQt5.QtWidgets import QPushButton, QVBoxLayout, QGridLayout
+from PyQt5.QtWidgets import QPushButton, QGridLayout
 from PyQt5.QtCore import QSize, Qt
 
 
-
-class CustomButtons(QVBoxLayout):
+class CustomButtons(QGridLayout):
     def __init__(self, navigation_manager, parent=None):
         super().__init__(parent)
-        button_texts = ["Uppdrag", "Skapa uppdrag", "Sök uppdrag", "Inställningar", "Historik", "Statistik"]
-        for text in button_texts:
-            button = self.create_button(text, lambda checked, page_name=text: navigation_manager.display_page(page_name))
-            self.addWidget(button)
+
+        button_texts = (
+            ["Uppdrag", "Skapa Uppdrag", "Sök uppdrag",
+             "Inställningar", "Historik", "Statistik"]
+        )
+
+        # Define the number of columns you want in the grid
+        columns = 3
+
+        for i, text in enumerate(button_texts):
+            button = self.create_button(text,
+                                        lambda checked, page_name=text: navigation_manager.display_page(page_name))
+            row = i // columns
+            col = i % columns
+            self.addWidget(button, row, col)
 
 
     @staticmethod
     def create_button(label: str, callback) -> QPushButton:
         """Create a QPushButton with custom styling."""
         button = QPushButton(label)
-        button.setFixedSize(QSize(150, 40))
+        button.setFixedSize(QSize(200, 40))
+
         button.clicked.connect(callback)
+
         button.setStyleSheet(
             """
             QPushButton {
@@ -43,7 +55,7 @@ class CustomButtons(QVBoxLayout):
     @staticmethod
     def create_button_grid(actions: list, columns: int = 3,
                            h_spacing: int = 10, v_spacing: int = 10,
-                           margins: tuple = (10, 10, 10, 10),
+                           margins: tuple = (1000, 10, 10, 10),
                            alignment: Qt.AlignmentFlag = Qt.AlignCenter) -> QGridLayout:
         """Create a grid of buttons with customizable layout options."""
         grid_layout = QGridLayout()
@@ -58,6 +70,3 @@ class CustomButtons(QVBoxLayout):
             grid_layout.addWidget(button, row, col, alignment)
 
         return grid_layout
-
-
-

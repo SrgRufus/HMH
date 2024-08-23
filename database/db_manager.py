@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
 from database.models import Base
 
+
 class DBManager:
     def __init__(self, db_path=DB_PATH):
         self.db_path = db_path
@@ -15,6 +16,7 @@ class DBManager:
     def init_db(self):
         """Initierar databasen och skapar alla tabeller"""
         Base.metadata.create_all(self.engine)
+
 
     @contextmanager
     def get_session(self):
@@ -28,6 +30,7 @@ class DBManager:
             raise RuntimeError(f"Error during session: {e}")
         finally:
             session.close()
+
 
     def close(self):
         """Stäng databas anslutningen"""
