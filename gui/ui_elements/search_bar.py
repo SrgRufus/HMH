@@ -1,4 +1,3 @@
-# gui.ui_elements.search_bar.py
 # gui.ui_elements.search_bar.py : Enhanced for extensibility
 from PyQt5.QtWidgets import QLineEdit
 

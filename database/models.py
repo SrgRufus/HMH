@@ -2,9 +2,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Index
 from sqlalchemy.ext.declarative import declarative_base
 
-
 Base = declarative_base()
-
 
 class Task(Base):
     """
@@ -22,7 +20,6 @@ class Task(Base):
     chauffor = Column(String, default='Unknown')
     koordinater = Column(String, default='0,0')
     next_occurrence_date = Column(DateTime, nullable=False)
-
     __table_args__ = (
         Index('ix_task_next_occurrence_date', 'next_occurrence_date'),
     )

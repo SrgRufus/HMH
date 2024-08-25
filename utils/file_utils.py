@@ -1,4 +1,4 @@
-# utils.file_utils.py
+# utils.file_utils.py : Hanterar filhantering
 import os
 import shutil
 

@@ -1,4 +1,5 @@
-# handlers.events.event_tasks.py
+# handlers/events/event_tasks.py
+import logging
 
 class TaskCreatedEvent:
     @staticmethod
@@ -6,8 +7,6 @@ class TaskCreatedEvent:
         """
         Hanterar logiken för när ett uppdrag skapas.
         """
-        print("Task created with data:", data)
+        logging.info(f"Task created with data: {data}")
         # Logik för att hantera uppdraget
         pass
-
-

@@ -1,12 +1,19 @@
 # controller.task_controller.py : Enhanced error handling and validation
-from database.managers.task_manager import TaskManager
-from utils.task_utils import validate_task_data # Lägg till denna rad för att använda din valideringsfunktion
+import logging
+from database import TaskManager
+from utils import validate_task_data # Lägg till denna rad för att använda din valideringsfunktion
 
 class TaskController:
     def __init__(self):
         self.task_manager = TaskManager()
+        logging.basicConfig(level=logging.INFO)  # Configure logging
 
-    def create_task(self, data):
+    def create_task(self, data: dict) -> bool:
+        """
+        Create a task with the provided data after validation.
+        :param data: Dictionary containing task details.
+        :return: True if the task is created successfully, False otherwise.
+        """
         try:
             validate_task_data(data['tomningsfrekvens'])  # Validera frekvensen
             # Skapa uppdraget och validerade data
@@ -21,12 +28,13 @@ class TaskController:
                 koordinater=data.get('koordinater', ''),
                 next_occurrence_date=data['next_occurrence_date']
             )
+            logging.info("Task created successfully.")
             return True
         except ValueError as e:
-            print(f"Validation Error: {e}")
+            logging.error(f"Validation Error: {e}")
             return False
         except Exception as e:
-            print(f"Error creating task: {e}")
+            logging.error(f"Error creating task: {e}")
             return False
 
     def get_tasks_for_date(self, date):

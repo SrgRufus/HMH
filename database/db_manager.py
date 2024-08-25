@@ -1,16 +1,15 @@
-# database.db_manager.py : Grundläggande databasoperationer.
+# database/db_manager.py
 from config import DB_PATH
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
-from database.models import Base
+from .models import Base
+from .connection import create_engine, Session
 
 
 class DBManager:
     def __init__(self, db_path=DB_PATH):
         self.db_path = db_path
         self.engine = create_engine(f'sqlite:///{db_path}', echo=True, pool_size=10, max_overflow=20)
-        self.Session = sessionmaker(bind=self.engine)
+        self.Session = Session(bind=self.engine)
 
 
     def init_db(self):

@@ -1,54 +1,40 @@
-# database.connection.py
+# database/connection.py
 import logging
 from contextlib import contextmanager
 
 from sqlalchemy import create_engine
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 from config import DB_PATH
-from database.models import Base
 
-# Se till att DB_PATH är korrekt formaterad och skapa en motor
-DATABASE_URL = f"sqlite:///{DB_PATH}"  # Länkar till din befintliga SQLite-databas
+# Ensure DB_PATH is correctly formatted and create an engine
+DATABASE_URL = f"sqlite:///{DB_PATH}"
 
-# Initierar databasmotorn med formatet DATABASE_URL
+# Initialize the database engine
 engine = create_engine(DATABASE_URL, echo=True)
 
-# Skapa en konfigurerad "Session" klass
-Session = sessionmaker(bind=engine)
+# Create a configured "Session" class using sessionmaker
+Session = sessionmaker(bind=engine)  # This is the session factory
 
-# Egentligen valfritt: Använd en scoped_session (för tråd-säkerhet):
-scoped_session_instance = scoped_session(Session)
+# Use a scoped_session for thread safety, passing the Session factory
+scoped_session_instance = scoped_session(Session)  # Thread-safe session
 
-# Konfigurera loggning
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-def init_db():
-    """
-    Initiera databasen och skapa alla tabeller.
-    """
-
-    Base.metadata.create_all(bind=engine)
-    logging.info("Database initialized and tables created.")
-
-# Context manager för att överse databas sessioner
+# Define the get_db_connection function
 @contextmanager
 def get_db_connection():
-    """
-    Provide a transactional scope around a series of operations.
-    """
-    session = Session()
+    """Provide a transactional scope around a series of operations."""
+    session = scoped_session_instance()
     try:
         yield session
         session.commit()
-    except SQLAlchemyError as e:  # Fånga upp SQLAlchemy-specifika "errors"
+    except Exception as e:
         session.rollback()
-        logging.error(f"SQLAlchemy error occurred: {e}")
-        raise
-    except Exception as e:  # Fånga upp alla andra
-        session.rollback()
-        logging.error(f"Unexpected error occurred: {e}")
+        logging.error(f"An error occurred: {e}")
         raise
     finally:
         session.close()
+
+def init_db():
+    """Initialize the database and create all tables."""
+    from .models import Base
+    Base.metadata.create_all(bind=engine)

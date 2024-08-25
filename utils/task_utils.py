@@ -1,6 +1,7 @@
 # utils.task_utils.py
 from datetime import datetime
-from utils.recurrence_utils import recurrence_mapping
+
+from .recurrence_utils import recurrence_mapping
 
 
 def validate_task_data(tomningsfrekvens):

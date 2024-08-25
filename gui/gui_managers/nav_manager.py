@@ -1,6 +1,7 @@
 # gui.gui_managers.nav_manager.py
 from PyQt5.QtWidgets import QMenu
 
+
 class NavigationManager:
     def __init__(self, main_window, page_manager=None):
         self.main_window = main_window

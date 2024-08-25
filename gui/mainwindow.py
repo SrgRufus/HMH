@@ -1,18 +1,12 @@
-# gui.mainwindow.py : Startsida
+# gui/mainwindow.py
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QLabel, QStackedWidget
 
-from database.connection import Session as DBSession
-from database.managers.event_manager import EventManager
-from database.managers.recurrence_manager import RecurrenceManager
-from database.managers.task_manager import TaskManager
-
-from gui.gui_managers.nav_manager import NavigationManager
-from gui.gui_managers.page_manager import PageManager
-from gui.ui_elements.button_elements import CustomButtons
-from gui.ui_elements.search_bar import SearchBar
-
+from database import EventManager, RecurrenceManager, TaskManager, Session as DBSession
+from .gui_managers import NavigationManager, PageManager
+from .ui_elements import CustomButtons, SearchBar
+from .resize_manager import ResizeManager
 
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
@@ -20,30 +14,36 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("HMH: Henry's Molok Hanterare")
         self.setGeometry(100, 100, 1200, 800)
 
+        self.resize_manager = ResizeManager()  # Initialize ResizeManager
+
         # Initialize necessary managers first
         self.session = DBSession()
         self.recurrence_manager = RecurrenceManager()
         self.event_manager = EventManager(self.recurrence_manager)
         self.task_manager = TaskManager()
 
-        # Step 1: Set up the stacked widget
+        # Set up the stacked widget
         self.stacked_widget = QStackedWidget()
         self.setCentralWidget(self.stacked_widget)
 
-        # Step 2: Initialize the NavigationManager first with a placeholder for page_manager
+        # Initialize the NavigationManager first with a placeholder for page_manager
         self.navigation_manager = NavigationManager(self, page_manager=None)
 
-        # Step 3: Initialize the PageManager with only the MainWindow
+        # Initialize the PageManager with only the MainWindow
         self.page_manager = PageManager(self)
 
-        # Step 4: Now that both managers are initialized, update NavigationManager with the actual PageManager
+        # Now that both managers are initialized, update NavigationManager with the actual PageManager
         self.navigation_manager.page_manager = self.page_manager
 
-        # Step 5: Initialize the UI elements
+        # Initialize the UI elements
         self.setup_ui()
 
-        # Step 6: Apply dark mode to the UI
+        # Apply dark mode to the UI
         self.apply_dark_mode()
+
+        # Force a resize after maximizing
+        self.resize(self.width() - 1, self.height() - 1)
+        self.resize(self.width() + 1, self.height() + 1)
 
     def setup_ui(self) -> None:
         # Create the home page and add it to the stacked widget
@@ -101,3 +101,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.search_bar.search_result_label)
         self.custom_buttons = CustomButtons(self.navigation_manager)
         layout.addLayout(self.custom_buttons)
+
+    def resizeEvent(self, event):
+        """Handle the resize event and delegate to the ResizeManager."""
+        self.resize_manager.resize_main_window(self)
+        super().resizeEvent(event)

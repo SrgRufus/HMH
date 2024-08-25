@@ -1,6 +1,7 @@
 # handlers.central_event_handler.py
 import logging
 from typing import Callable, Dict, List
+
 # importera 'event' hanterare
 from handlers.events.event_tasks import TaskCreatedEvent
 

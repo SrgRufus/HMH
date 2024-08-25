@@ -2,8 +2,7 @@
 import calendar
 from datetime import datetime, timedelta
 
-# Återkommande uträkningsfunktion (recurrence calculations)
-# Räkna ut den nästa utsatta veckodagen från dagen datum/dag.
+
 def next_day_of_week(current_date, target_weekday):
     days_ahead = target_weekday - current_date.weekday()
     if days_ahead <= 0:

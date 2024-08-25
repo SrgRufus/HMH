@@ -2,16 +2,13 @@
 from PyQt5.QtWidgets import QPushButton, QGridLayout
 from PyQt5.QtCore import QSize, Qt
 
-
 class CustomButtons(QGridLayout):
     def __init__(self, navigation_manager, parent=None):
         super().__init__(parent)
-
         button_texts = (
             ["Uppdrag", "Skapa Uppdrag", "Sök uppdrag",
              "Inställningar", "Historik", "Statistik"]
         )
-
         # Define the number of columns you want in the grid
         columns = 3
 
@@ -22,13 +19,11 @@ class CustomButtons(QGridLayout):
             col = i % columns
             self.addWidget(button, row, col)
 
-
     @staticmethod
     def create_button(label: str, callback) -> QPushButton:
         """Create a QPushButton with custom styling."""
         button = QPushButton(label)
         button.setFixedSize(QSize(200, 40))
-
         button.clicked.connect(callback)
 
         button.setStyleSheet(

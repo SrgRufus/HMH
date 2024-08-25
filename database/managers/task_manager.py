@@ -1,18 +1,19 @@
-# database.managers.task_manager.py
+# database/managers/task_manager.py
 from datetime import datetime
-from database.connection import Session as DBSession
-from database.models import Task
-from utils.date_utils import validate_and_parse_date
+
+from utils import validate_and_parse_date
+from .. import connection  # Adjust to relative import
+from .. import models  # Adjust to relative import
 
 
 class TaskManager:
     def __init__(self):
-        self.session = DBSession()
+        self.session = connection.scoped_session_instance()
 
 
     def create_task(self, kommun, adress, ort, material, tomningsfrekvens, info, chauffor, koordinater, next_occurrence_date):
         next_occurrence_date = validate_and_parse_date(next_occurrence_date)
-        new_task = Task(
+        new_task = models.Task(
             kommun=kommun,
             adress=adress,
             ort=ort,
@@ -28,23 +29,28 @@ class TaskManager:
 
     def fetch_task_by_id(self, task_id):
         """Fetch a task by its ID."""
-        return self.session.query(Task).get(task_id)
+        return self.session.query(models.Task).get(task_id)
 
     def update_task_status(self, task_id, status, image_path=None):
-        task = self.session.query(Task).get(task_id)
+        task = self.session.query(models.Task).get(task_id)
         if task:
             task.status = status
             if image_path:
                 task.image_path = image_path
             self.session.commit()
 
+    def get_tasks_by_date(self, date):
+        """
+        Retrieve tasks scheduled for a specific date.
 
-    def get_tasks_for_date(self, date):
-        return self.session.query(Task).filter(Task.next_occurrence_date == date).all()
+        :param date: The date to filter tasks by.
+        :return: A list of tasks scheduled for the given date.
+        """
+        return self.session.query(models.Task).filter(models.Task.next_occurrence_date == date).all()
 
 
     def delete_task(self, task_id):
-        task = self.session.query(Task).get(task_id)
+        task = self.session.query(models.Task).get(task_id)
         if task:
             self.session.delete(task)
             self.session.commit()

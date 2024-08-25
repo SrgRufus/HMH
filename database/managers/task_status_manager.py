@@ -1,10 +1,16 @@
-# database.managers.task_status_manager.py
-from database.models import Task
-from database.connection import Session as DBSession
+# database/managers/task_status_manager.py
+from .. import connection  # Import connection module
+from .. import models  # Import models module
+
+
+# Use centralized session from connection.py
+# Use Task model from models.py
+
+
 
 class TaskStatusManager:
     def __init__(self):
-        self.session = DBSession()
+        self.session = connection.scoped_session_instance()
 
     def update_task_status(self, task_id, status, image_path=None):
         """Uppdatera status på uppdraget, valmöjlighet finns att ladda upp bild."""
@@ -12,7 +18,7 @@ class TaskStatusManager:
         if status not in valid_statuses:
             raise ValueError(f"Invalid status: {status}")
 
-        task = self.session.query(Task).get(task_id)
+        task = self.session.query(models.Task).get(task_id)
         if task:
             task.status = status
             if image_path:

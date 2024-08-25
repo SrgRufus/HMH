@@ -1,13 +1,13 @@
 # database.test.task_testing_controller.py
 import unittest
-from controllers.task_controller import TaskController
+from controllers import (TaskController)
 
 class TaskTestingController(unittest.TestCase):
     def setUp(self):
         self.controller = TaskController()
 
     def test_create_task_success(self):
-        """Testa skapa ett uppdrag med korrekt data"""
+        """Test creating a task with correct data."""
         data = {
             "kommun": "Test Kommun",
             "adress": "Test Adress",
@@ -20,7 +20,7 @@ class TaskTestingController(unittest.TestCase):
         self.assertTrue(result)
 
     def test_create_task_with_invalid_date(self):
-        """Testa att skapa ett uppdrag med felaktigt datum"""
+        """Test creating a task with an invalid date."""
         data = {
             "kommun": "Test Kommun",
             "adress": "Test Adress",
@@ -33,7 +33,7 @@ class TaskTestingController(unittest.TestCase):
             self.controller.create_task(data)
 
     def test_create_task_with_invalid_frequency(self):
-        """Testar att skapa ett uppdrag med en felaktig frekvens"""
+        """Test creating a task with an invalid frequency."""
         data = {
             "kommun": "Test Kommun",
             "adress": "Test Adress",
@@ -47,4 +47,3 @@ class TaskTestingController(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

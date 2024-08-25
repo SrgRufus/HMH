@@ -1,12 +1,9 @@
-# database.operations.py : Adding batch operations and enhanced error handling
+# database/operations.py
 import logging
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from database.connection import engine
+from .connection import Session
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-Session = sessionmaker(bind=engine)
 
 def execute_query(query_func, *args, **kwargs):
     """Execute a query with proper error handling."""

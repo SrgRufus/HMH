@@ -1,4 +1,4 @@
-# gui.gui_managers.ui_elements.widgets.py
+# gui.ui_elements.widgets.py : TaskTree Widget with custom styling
 from PyQt5.QtWidgets import QTreeWidget, QTreeWidgetItem
 from PyQt5.QtGui import QColor, QBrush, QFont
 from PyQt5.QtCore import Qt

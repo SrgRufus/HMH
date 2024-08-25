@@ -1,12 +1,10 @@
 # database.queries.task_queries.py
 from datetime import datetime
-from sqlalchemy.orm import sessionmaker
-from database.models import Task
-from database.connection import engine
 
+from .. import connection  # Import centralized connection
+from .. import models  # Import models module
 
-Session = sessionmaker(bind=engine)
-session = Session()
+session = connection.scoped_session_instance()
 
 
 def get_tasks_by_date(date):
@@ -24,25 +22,25 @@ def get_tasks_by_date(date):
         raise ValueError(
             "The 'date' parameter must be a datetime object or a valid date string in 'YYYY-MM-DD' format.")
 
-    return session.query(Task).filter(Task.next_occurrence_date == date).all()
+    return session.query(models.Task).filter(models.Task.next_occurrence_date == date).all()
 
 
 def get_all_tasks():
     """Hämta alla uppdrag."""
-    return session.query(Task).all()
+    return session.query(models.Task).all()
 
 
 # ORM-based replacements for raw SQL queries:
 def create_task(task_data):
     """Mata in ett nytt uppdrag i databasen."""
-    new_task = Task(**task_data)
+    new_task = models.Task(**task_data)
     session.add(new_task)
     session.commit()
 
 
 def update_task_status(task_id, status, image_path=None):
     """Uppdatera status för ett uppdrag."""
-    task = session.query(Task).get(task_id)
+    task = session.query(models.Task).get(task_id)
     if task:
         task.status = status
         if image_path:
@@ -54,7 +52,7 @@ def update_task_status(task_id, status, image_path=None):
 
 def delete_task(task_id):
     """Radera ett uppdrag med dens ID."""
-    task = session.query(Task).get(task_id)
+    task = session.query(models.Task).get(task_id)
     if task:
         session.delete(task)
         session.commit()

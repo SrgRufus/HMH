@@ -1,39 +1,50 @@
 # Root.main.py
 import sys
+import logging
 from PyQt5.QtWidgets import QApplication
 from config import DB_PATH
-from database.db_manager import DBManager
-from gui.mainwindow import MainWindow
-from database.managers.event_manager import EventManager
-from database.managers.recurrence_manager import RecurrenceManager
-from database.managers.task_manager import TaskManager
-from handlers.central_event_handler import event_handler
+from database import DBManager, EventManager, RecurrenceManager, TaskManager
+from gui import MainWindow
+from handlers import event_handler
+
+logging.basicConfig(level=logging.INFO)
 
 def initialize_database():
     """Initierar databasen och returnerar DBManager instansen"""
-    db_manager = DBManager(DB_PATH)
-    db_manager.init_db()
-    return db_manager
+    try:
+        db_manager = DBManager(DB_PATH)
+        db_manager.init_db()
+        logging.info("Database initialized successfully.")
+        return db_manager
+    except Exception as e:
+        logging.error(f"Error initializing database: {e}")
+        sys.exit(1)
 
 def initialize_managers():
     """Initiera och returnera de "managers" som krävs för applikationen."""
-    recurrence_manager = RecurrenceManager()
-    event_manager = EventManager(recurrence_manager=recurrence_manager)
-    task_manager = TaskManager()
-    return recurrence_manager, event_manager, task_manager
+    try:
+        recurrence_manager = RecurrenceManager()
+        event_manager = EventManager(recurrence_manager=recurrence_manager)
+        task_manager = TaskManager()
+        logging.info("Managers initialized successfully.")
+        return recurrence_manager, event_manager, task_manager
+    except Exception as e:
+        logging.error(f"Error initializing managers: {e}")
+        sys.exit(1)
 
 def register_event_handlers():
     """Registrerar globala event hanterare för applikationen"""
     event_handler.register_handler('task_created', on_task_created)
+    logging.info("Event handlers registered successfully.")
 
 def on_task_created(task_data):
     """Hanterar funktionen som kallas när ett uppdrag skapas"""
-    print(f"Task created: {task_data}")
+    logging.info(f"Task created: {task_data}")
 
 def main():
     app = QApplication(sys.argv)
 
-    # Initiering databas och managers, typ
+    # Initiering databas och managers
     initialize_database()
     initialize_managers()
     register_event_handlers()
@@ -46,5 +57,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    # Om du vill köra testkoden, anropa den här:
-    # test_function()

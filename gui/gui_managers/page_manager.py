@@ -1,11 +1,10 @@
-# gui.managers.page_manager.py : Refactored for modularity and extensibility
+# gui.gui_managers.page_manager.py : Refactored for modularity and extensibility
 from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt
-from gui.list_tasks import ListTasks
-from gui.create_task_page import CreateTaskDialog
-from gui.ui_elements.button_elements import CustomButtons
-
+from ..list_tasks import ListTasks  # Adjusted to use relative import
+from ..create_task_page import CreateTaskDialog  # Adjusted to use relative import
+from ..ui_elements import CustomButtons  # Adjusted to use relative import
 
 class PageManager:
     def __init__(self, main_window):

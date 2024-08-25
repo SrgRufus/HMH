@@ -1,13 +1,18 @@
-# database.managers.recurrence_manager.py : Hanterar återkommande uppdrag.
+# database/managers/recurrence_manager.py
 from datetime import timedelta
-from utils.date_utils import validate_and_parse_date
-from database.models import Task
-from database.connection import Session as DBSession
+
+from utils import validate_and_parse_date
+from .. import connection  # Import connection module
+from .. import models  # Import models module
+
+
+# Use centralized session from connection.py
+# Use Task model from models.py
 
 
 class RecurrenceManager:
     def __init__(self):
-        self.session = DBSession()
+        self.session = connection.scoped_session_instance()
 
     @staticmethod
     def calculate_recurring_task(task, recurrence_interval_days):
@@ -16,7 +21,7 @@ class RecurrenceManager:
         # Calculate the next date based on recurrence interval
         next_date = task.next_occurrence_date + timedelta(days=recurrence_interval_days)
         # Create a new task with updated next occurrence date
-        new_task = Task(
+        new_task = models.Task(
             kommun=task.kommun,
             adress=task.adress,
             ort=task.ort,
