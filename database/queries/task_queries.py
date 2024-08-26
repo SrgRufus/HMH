@@ -1,11 +1,9 @@
 # database.queries.task_queries.py
 from datetime import datetime
 
-from .. import connection  # Import centralized connection
-from .. import models  # Import models module
+from database import connection, models
 
 session = connection.scoped_session_instance()
-
 
 def get_tasks_by_date(date):
     """

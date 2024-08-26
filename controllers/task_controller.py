@@ -1,41 +1,34 @@
-# controller.task_controller.py : Enhanced error handling and validation
-import logging
-from database import TaskManager
-from utils import validate_task_data # Lägg till denna rad för att använda din valideringsfunktion
+# controllers/task_controller.py
+import logging  # Importera logging för att hålla koll på vad som händer i koden
+
+from database.managers.task_manager import TaskManager  # Importera TaskManager för att hantera uppgifter i databasen
+
 
 class TaskController:
-    def __init__(self):
-        self.task_manager = TaskManager()
-        logging.basicConfig(level=logging.INFO)  # Configure logging
+    def __init__(self, session):
+        """När det skapas ett TaskController-objekt, initieras TaskManager som tar hand om uppgifterna."""
+        self.task_manager = TaskManager(session)  # Här skickas sessionen till TaskManager
+        logging.basicConfig(level=logging.DEBUG)  # Sätter upp logging så att man kan se vad som händer, särskilt för att felsöka
 
-    def create_task(self, data: dict) -> bool:
-        """
-        Create a task with the provided data after validation.
-        :param data: Dictionary containing task details.
-        :return: True if the task is created successfully, False otherwise.
-        """
+    def fetch_all_tasks(self):
+        """Den här metoden hämtar alla uppgifter från databasen och returnerar dem."""
+        return self.task_manager.get_all_tasks()
+
+    def fetch_task_by_id(self, task_id: int):
+        """Den här metoden hämtar en specifik uppgift från databasen baserat på dess ID."""
         try:
-            validate_task_data(data['tomningsfrekvens'])  # Validera frekvensen
-            # Skapa uppdraget och validerade data
-            self.task_manager.create_task(
-                kommun=data['kommun'],
-                adress=data['adress'],
-                ort=data['ort'],
-                material=data['material'],
-                tomningsfrekvens=data['tomningsfrekvens'],
-                info=data.get('info', ''),
-                chauffor=data.get('chauffor', ''),
-                koordinater=data.get('koordinater', ''),
-                next_occurrence_date=data['next_occurrence_date']
-            )
-            logging.info("Task created successfully.")
-            return True
-        except ValueError as e:
-            logging.error(f"Validation Error: {e}")
-            return False
+            return self.task_manager.fetch_task_by_id(task_id)
         except Exception as e:
-            logging.error(f"Error creating task: {e}")
-            return False
+            logging.error(f"Error fetching task by ID {task_id}: {e}")  # Loggar ett fel om något går snett
+            return None
 
-    def get_tasks_for_date(self, date):
-        return self.task_manager.get_tasks_by_date(date)
+    def update_task(self, task_id: int, updated_data: dict) -> bool:
+        """Den här metoden uppdaterar en uppgift med de nya uppgifterna som skickas in."""
+        try:
+            success = self.task_manager.update_task_status(task_id, updated_data)  # Försöker uppdatera uppgiften
+            if success:
+                logging.info("Task updated successfully.")  # Loggar framgång om uppdateringen lyckades
+            return success
+        except Exception as e:
+            logging.error(f"Error updating task: {e}")  # Loggar ett fel om något går snett
+            return False

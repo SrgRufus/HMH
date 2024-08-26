@@ -1,83 +1,72 @@
 # gui.gui_managers.page_manager.py : Refactored for modularity and extensibility
-from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt
-from ..list_tasks import ListTasks  # Adjusted to use relative import
-from ..create_task_page import CreateTaskDialog  # Adjusted to use relative import
-from ..ui_elements import CustomButtons  # Adjusted to use relative import
+from PyQt5.QtWidgets import QLabel, QWidget, QVBoxLayout  # Importera nödvändiga Qt-widgets för att bygga GUI
+from PyQt5.QtGui import QPixmap  # Importera QPixmap för att hantera bilder
+from PyQt5.QtCore import Qt  # Importera Qt-konstanter för alignment och andra Qt-funktioner
+
+from ..list_tasks import ListTasks  # Importera ListTasks-sidan från en annan fil
+from ..create_task_page import CreateTaskDialog  # Importera sidan för att skapa uppdrag
+from ..ui_elements import CustomButtons  # Importera anpassade knappar
+from ..update_task_page import UpdateTaskPage  # Importera sidan för att uppdatera uppdrag
 
 class PageManager:
-    def __init__(self, main_window):
-        self.main_window = main_window
-        self.pages = self.create_pages()
+    def __init__(self, main_window, session):
+        """Det här är konstruktorn för PageManager. Vi sparar huvudfönstret och sessionen som används för att visa och hantera sidor."""
+        self.main_window = main_window  # Sparar en referens till huvudfönstret
+        self.session = session  # Sparar en referens till databas-sessionsobjektet
+        self.pages = self.create_pages()  # Skapar en dictionary där vi håller reda på alla sidor
 
     def create_pages(self) -> dict:
-        """Create and return a dictionary of all page names and widgets."""
+        """Skapar och returnerar en dictionary som innehåller alla sidors namn och tillhörande widgets."""
         pages = {
-            "Hem": self.create_home_page(),
-            "Skapa Uppdrag": None,  # Delay creation until needed
-            "Uppdrag": self.create_tasks_page(),
+            "Hem": self.create_home_page(),  # Skapa startsidan och lägg till den
+            "Skapa Uppdrag": None,  # Vi skapar den här sidan först när den behövs
+            "Uppdrag": self.create_tasks_page(),  # Skapa sidan för att visa uppdrag
+            "Uppdatera Uppdrag": UpdateTaskPage(self.main_window, self.session),  # Skapa sidan för att uppdatera uppdrag
         }
-        print(f"Pages initialized: {list(pages.keys())}")
+        print(f"Pages initialized: {list(pages.keys())}")  # Skriver ut vilka sidor som har initierats
         return pages
 
     def create_home_page(self) -> QWidget:
-        """Skapa sidan för "Hem"."""
-        home_widget = QWidget()
-        layout = QVBoxLayout(home_widget)
+        """Skapar startsidan."""
+        home_widget = QWidget()  # Skapar en tom widget som ska innehålla startsidan
+        layout = QVBoxLayout(home_widget)  # Använder en vertikal layout för att stapla saker på varandra
 
-        logo_label = QLabel(self.main_window)
-        pixmap = QPixmap("assets/logo_to_end_all_logos.png")  # Ensure the logo is in the 'assets' folder
-        scaled_pixmap = pixmap.scaled(800, 350, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        logo_label.setPixmap(scaled_pixmap)
-        logo_label.setAlignment(Qt.AlignCenter)
+        # Lägger till en logotyp på startsidan
+        logo_label = QLabel(self.main_window)  # Skapar en etikett där vi kan sätta en bild
+        pixmap = QPixmap("assets/logo_to_end_all_logos.png")  # Laddar bilden från assets-mappen
+        scaled_pixmap = pixmap.scaled(800, 350, Qt.KeepAspectRatio, Qt.SmoothTransformation)  # Skalar bilden till en lämplig storlek
+        logo_label.setPixmap(scaled_pixmap)  # Sätter den skalade bilden på etiketten
+        logo_label.setAlignment(Qt.AlignCenter)  # Centrerar bilden på sidan
 
-#        welcome_label = QLabel("")
-#        welcome_label.setFont(QFont("Arial", 20, QFont.Bold))
-#        welcome_label.setStyleSheet("color: #0078d7;")
-#        welcome_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(logo_label)  # Lägger till etiketten i layouten
+        layout.setAlignment(Qt.AlignCenter)  # Centrerar hela layouten
 
-        layout.addWidget(logo_label)
-#        layout.addWidget(welcome_label)
-        layout.setAlignment(Qt.AlignCenter)
-
-        # Add the CustomButtons layout to the page
+        # Lägg till de anpassade knapparna på sidan
         buttons_layout = CustomButtons(self.main_window.navigation_manager)
-        layout.addLayout(buttons_layout)
+        layout.addLayout(buttons_layout)  # Lägger till knapparna i layouten
 
-        return home_widget
+        return home_widget  # Returnerar startsidan som vi just skapade
 
     def create_tasks_page(self) -> QWidget:
-        """Skapa sidan för "Uppdrag"."""
-        return ListTasks(self.main_window, self.main_window.event_manager)
+        """Skapar sidan för att visa uppdrag."""
+        return ListTasks(self.main_window, self.session, self.main_window.event_manager)  # Returnerar en instans av ListTasks
 
     def create_create_task_page(self) -> CreateTaskDialog:
-        """Create the Create Task page."""
-        # Check if the page is None to create a new instance
+        """Skapar sidan för att skapa uppdrag."""
+        # Kollar om sidan redan är skapad
         if self.pages.get("Skapa Uppdrag") is None:
             print("Creating 'Skapa Uppdrag' page")
 
-            # Create the page
+            # Skapar sidan
             create_task_page = CreateTaskDialog(self.main_window)
-            # Add the page to the pages dictionary
+            # Lägger till sidan i vår pages dictionary
             self.pages["Skapa Uppdrag"] = create_task_page
-            # Add the page to the stacked widget or layout if necessary
+            # Lägger till sidan i den staplade widgeten om det behövs
             self.main_window.stacked_widget.addWidget(create_task_page)
         return self.pages["Skapa Uppdrag"]
 
-   # def handle_task_creation(self):
-   #     """Handle the task creation event."""
-   #     create_task_page = self.pages.get("Skapa Uppdrag")
-   #     if create_task_page is not None:
-   #         print("Task created successfully!")
-   #         # Call the submit method safely
-   #         create_task_page.submit()
-   #         self.main_window.display_page("Uppdrag")
-   #     else:
-   #         print("Error: 'Skapa Uppdrag' page is not initialized!")
-
     def display_page(self, page_name):
-        """Display the requested page by name."""
+        """Visar sidan man begär efter namn"""
         print(f"Attempting to display page '{page_name}'")
 
         # Check if the page needs to be created

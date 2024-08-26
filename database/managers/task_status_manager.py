@@ -1,31 +1,29 @@
 # database/managers/task_status_manager.py
-from .. import connection  # Import connection module
-from .. import models  # Import models module
-
-
-# Use centralized session from connection.py
-# Use Task model from models.py
-
-
+from database import connection, Task
 
 class TaskStatusManager:
     def __init__(self):
+        """Konstruktor för TaskStatusManager som initierar en trådsäker session."""
         self.session = connection.scoped_session_instance()
 
     def update_task_status(self, task_id, status, image_path=None):
-        """Uppdatera status på uppdraget, valmöjlighet finns att ladda upp bild."""
-        valid_statuses = ["Pending", "In Progress", "Completed", "Failed"]  # Example statuses
-        if status not in valid_statuses:
-            raise ValueError(f"Invalid status: {status}")
-
-        task = self.session.query(models.Task).get(task_id)
-        if task:
-            task.status = status
-            if image_path:
-                task.image_path = image_path
-            self.session.commit()
-        else:
-            raise ValueError(f"Task with ID {task_id} not found.")
+        """
+        Uppdaterar statusen för en uppgift och, om tillämpligt, dess bildväg.
+        :param task_id: ID för uppgiften som ska uppdateras.
+        :param status: Ny status för uppgiften.
+        :param image_path: Sökvägen till en bild relaterad till uppgiften (valfritt).
+        """
+        with self.session as session:
+            task = session.query(Task).get(task_id)  # Hämta uppgiften baserat på ID
+            if task:
+                task.status = status  # Uppdatera statusen
+                if image_path:
+                    task.image_path = image_path  # Uppdatera bildvägen om den angavs
+                session.commit()  # Utför commit för att spara ändringarna
+            else:
+                raise ValueError(f"Task with ID {task_id} not found.")  # Kasta ett fel om uppgiften inte hittas
 
     def close(self):
+        """Stänger databassessionen."""
         self.session.close()
+

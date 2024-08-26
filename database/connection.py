@@ -1,40 +1,46 @@
 # database/connection.py
-import logging
-from contextlib import contextmanager
+import logging  # Importera logging-modulen för att logga fel och information
+from contextlib import contextmanager  # Importera contextmanager för att skapa kontexthanterare
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy import create_engine  # Importera create_engine för att skapa databasmotorn
+from sqlalchemy.orm import scoped_session, \
+    sessionmaker  # Importera scoped_session och sessionmaker för att hantera databassessioner
 
-from config import DB_PATH
+from config import DB_PATH  # Importera DB_PATH från config-filen för att få sökvägen till databasen
 
-# Ensure DB_PATH is correctly formatted and create an engine
+# Skapa en databas-URL genom att använda DB_PATH
 DATABASE_URL = f"sqlite:///{DB_PATH}"
 
-# Initialize the database engine
-engine = create_engine(DATABASE_URL, echo=True)
+# Initiera databasmotorn med den skapade URL:en
+engine = create_engine(DATABASE_URL, echo=True)  # echo=True för att logga alla SQL-uttalanden
 
-# Create a configured "Session" class using sessionmaker
-Session = sessionmaker(bind=engine)  # This is the session factory
+# Skapa en "Session" klasskonfiguration med sessionmaker, bunden till motorn
+Session = sessionmaker(bind=engine)
 
-# Use a scoped_session for thread safety, passing the Session factory
-scoped_session_instance = scoped_session(Session)  # Thread-safe session
+# Använd scoped_session för trådsäker hantering av sessions, särskilt användbart i webapplikationer
+scoped_session_instance = scoped_session(Session)
 
-# Define the get_db_connection function
 @contextmanager
 def get_db_connection():
-    """Provide a transactional scope around a series of operations."""
-    session = scoped_session_instance()
+    """
+    Kontexthanterare för att skapa och stänga databassessioner på ett säkert sätt.
+    Hanterar commits och rollbacks automatiskt.
+    """
+    session = scoped_session_instance()  # Skapa en ny session
     try:
-        yield session
-        session.commit()
+        yield session  # Ge sessionen till den kod som använder denna kontext
+        session.commit()  # Utför commit om inga fel inträffar
     except Exception as e:
-        session.rollback()
-        logging.error(f"An error occurred: {e}")
-        raise
+        session.rollback()  # Återställ sessionen om ett fel uppstår
+        logging.error(f"An error occurred: {e}")  # Logga felet
+        raise  # Kasta vidare felet så att det kan hanteras högre upp
     finally:
-        session.close()
+        session.close()  # Stäng sessionen
 
 def init_db():
-    """Initialize the database and create all tables."""
-    from .models import Base
-    Base.metadata.create_all(bind=engine)
+    """
+    Initiera databasen genom att skapa alla definierade tabeller.
+    Denna funktion används vanligtvis vid start av applikationen.
+    """
+    from .models import Base  # Importera Base-klassen från models för att kunna skapa tabeller
+    Base.metadata.create_all(bind=engine)  # Skapa alla tabeller i databasen baserat på modellerna
